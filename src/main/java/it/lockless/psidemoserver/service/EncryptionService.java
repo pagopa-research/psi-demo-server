@@ -5,7 +5,6 @@ import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 import it.lockless.psidemoserver.mapper.AlgorithmMapper;
 import it.lockless.psidemoserver.model.PsiDatasetMapDTO;
 import it.lockless.psidemoserver.model.PsiServerDatasetPageDTO;
-import it.lockless.psidemoserver.model.SessionParameterDTO;
 import it.lockless.psidemoserver.repository.PsiElementRepository;
 import it.lockless.psidemoserver.util.exception.SessionExpiredException;
 import it.lockless.psidemoserver.util.exception.SessionNotFoundException;

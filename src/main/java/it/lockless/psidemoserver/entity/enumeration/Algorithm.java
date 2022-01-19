@@ -11,7 +11,7 @@ public enum Algorithm {
     private final List<Integer> supportedKeySize;
 
     public List<Integer> getSupportedKeySize(){
-        return new ArrayList<Integer>(supportedKeySize);
+        return new ArrayList<>(supportedKeySize);
     }
 
     private Algorithm(Integer ... supportedKeySize){

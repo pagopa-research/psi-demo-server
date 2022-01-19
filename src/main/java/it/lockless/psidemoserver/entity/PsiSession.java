@@ -1,7 +1,6 @@
 package it.lockless.psidemoserver.entity;
 
 import it.lockless.psidemoserver.entity.enumeration.Algorithm;
-import it.lockless.psidemoserver.model.enumeration.AlgorithmDTO;
 
 import javax.persistence.*;
 import java.io.Serializable;

@@ -7,7 +7,6 @@ import it.lockless.psidemoserver.controller.errors.RequestTimeoutProblem;
 import it.lockless.psidemoserver.model.PsiDatasetMapDTO;
 import it.lockless.psidemoserver.model.PsiServerDatasetPageDTO;
 import it.lockless.psidemoserver.model.PsiSessionWrapperDTO;
-import it.lockless.psidemoserver.model.SessionParameterDTO;
 import it.lockless.psidemoserver.service.EncryptionService;
 import it.lockless.psidemoserver.service.PsiSessionService;
 import it.lockless.psidemoserver.util.exception.SessionExpiredException;
@@ -15,6 +14,7 @@ import it.lockless.psidemoserver.util.exception.SessionNotFoundException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import psi.dto.PsiAlgorithmParameterDTO;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ public class PsiController {
 			@ApiResponse(responseCode = "200", description = "successful operation"),
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@GetMapping(value = "/parameters", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<SessionParameterDTO>> getParameters() {
+	public ResponseEntity<List<PsiAlgorithmParameterDTO>> getParameters() {
 		return ResponseEntity.ok(encryptionService.getAvailableSessionParameterDTO());
 	}
 
@@ -45,7 +45,7 @@ public class PsiController {
 			@ApiResponse(responseCode = "400", description = "wrong or missing input"),
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@PostMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<PsiSessionWrapperDTO> initSession(@RequestBody SessionParameterDTO sessionParameterDTO) {
+	public ResponseEntity<PsiSessionWrapperDTO> initSession(@RequestBody PsiAlgorithmParameterDTO sessionParameterDTO) {
 		return ResponseEntity.ok(psiSessionService.initSession(sessionParameterDTO));
 	}
 

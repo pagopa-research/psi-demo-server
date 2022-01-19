@@ -9,4 +9,5 @@ public interface PsiSessionRepository extends JpaRepository<PsiSession, Long> {
 
     Optional<PsiSession> findById(Long sessionId);
 
+    void save(PsiSession psiSession); //TODO: ma perchè lo devo mettere?
 }

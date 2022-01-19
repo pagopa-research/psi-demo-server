@@ -1,7 +1,6 @@
 package it.lockless.psidemoserver.config;
 
 import it.lockless.psidemoserver.entity.PsiKey;
-import it.lockless.psidemoserver.model.enumeration.AlgorithmDTO;
 import it.lockless.psidemoserver.repository.PsiKeyRepository;
 import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 import it.lockless.psidemoserver.util.exception.AlgorithmInvalidKeyException;

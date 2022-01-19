@@ -4,8 +4,6 @@ import it.lockless.psidemoserver.config.StoredAlgorithmKey;
 import it.lockless.psidemoserver.entity.PsiElement;
 import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 import it.lockless.psidemoserver.model.PsiSessionWrapperDTO;
-import it.lockless.psidemoserver.model.SessionParameterDTO;
-import it.lockless.psidemoserver.model.enumeration.AlgorithmDTO;
 import it.lockless.psidemoserver.repository.PsiElementRepository;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.bind.annotation.RequestBody;
+import psi.dto.PsiAlgorithmDTO;
 import psi.dto.PsiAlgorithmParameterDTO;
 
 import javax.validation.constraints.AssertTrue;
@@ -54,7 +53,7 @@ class PsiControllerTest {
 		List<PsiAlgorithmParameterDTO> sessionParameterDTOList = controller.getParameters().getBody();
 		assertNotNull(sessionParameterDTOList);
 		sessionParameterDTOList.forEach(dto -> {
-			assertTrue(Arrays.asList(AlgorithmDTO.values()).contains(dto.getAlgorithm()));
+			assertTrue(Arrays.asList(PsiAlgorithmDTO.values()).contains(dto.getAlgorithm()));
 		});
 
 		PsiAlgorithmParameterDTO sessionParameterDTO = sessionParameterDTOList.get(0);

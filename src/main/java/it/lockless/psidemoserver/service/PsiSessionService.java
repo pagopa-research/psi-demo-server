@@ -6,7 +6,6 @@ import it.lockless.psidemoserver.entity.PsiSession;
 import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 import it.lockless.psidemoserver.mapper.AlgorithmMapper;
 import it.lockless.psidemoserver.model.PsiSessionWrapperDTO;
-import it.lockless.psidemoserver.model.SessionParameterDTO;
 import it.lockless.psidemoserver.repository.PsiKeyRepository;
 import it.lockless.psidemoserver.repository.PsiSessionRepository;
 import it.lockless.psidemoserver.service.cache.PsiCacheProviderImplementation;
@@ -56,7 +55,7 @@ public class PsiSessionService {
     public PsiSessionWrapperDTO initSession(PsiAlgorithmParameterDTO sessionParameterDTO) {
         // fulfill PsiAlgorithmParameterDTO
         PsiAlgorithmParameterDTO psiAlgorithmParameterDTO = new PsiAlgorithmParameterDTO();
-        psiAlgorithmParameterDTO.setAlgorithm(sessionParameterDTO.getAlgorithm().toString());
+        psiAlgorithmParameterDTO.setAlgorithm(sessionParameterDTO.getAlgorithm());
         psiAlgorithmParameterDTO.setKeySize(sessionParameterDTO.getKeySize());
 
         // Retrieve the key corresponding to the pair <algorithm, keySIze>
