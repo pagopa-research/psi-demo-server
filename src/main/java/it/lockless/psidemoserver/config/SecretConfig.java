@@ -19,10 +19,12 @@ import java.security.spec.RSAPublicKeySpec;
 import java.util.*;
 import java.util.stream.Stream;
 
+// Important: this is only a mock of a real keyStore and it is not intended to be used in a real environment.
+
 @Component
 public class SecretConfig {
 
-    private final String keyStoreFileName = "key.store";
+    private static final String KEY_STORE_FILENAME = "key.store";
 
     @Bean
     public StoredAlgorithmKey createStoredAlgorithmKey() {
@@ -87,10 +89,10 @@ public class SecretConfig {
 
         return psiKey;
     }
-    
+
     private Set<PsiKey> loadKeySetFromFile(){;
         Set<PsiKey> psiKeySet = new HashSet<>();
-        File keyStoreFile = new File(keyStoreFileName);
+        File keyStoreFile = new File(KEY_STORE_FILENAME);
 
         if(keyStoreFile.exists()) {
             try {
@@ -104,7 +106,7 @@ public class SecretConfig {
     }
 
     private boolean writeKeySetFromFile(Set<PsiKey> psiKeySet){
-        File keyStoreFile = new File(keyStoreFileName);
+        File keyStoreFile = new File(KEY_STORE_FILENAME);
         try {
             if (!keyStoreFile.exists())
                 keyStoreFile.createNewFile();
