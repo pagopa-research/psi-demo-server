@@ -77,6 +77,13 @@
 			<version>0.24.0-RC.0</version>
 		</dependency>
 
+		<!-- security -->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-client</artifactId>
+			<version>5.3.9.RELEASE</version>
+		</dependency>
+
 		<!-- test only -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

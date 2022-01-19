@@ -10,8 +10,8 @@ public class AlgorithmMapper {
         switch (algorithm) {
             case DH:
                 return AlgorithmDTO.DH;
-            case RSA:
-                return AlgorithmDTO.RSA;
+            case BS:
+                return AlgorithmDTO.BS;
             default:
                 throw new CustomRuntimeException("Algorithm not supported");
         }
@@ -21,8 +21,8 @@ public class AlgorithmMapper {
         switch (algorithmDTO) {
             case DH:
                 return Algorithm.DH;
-            case RSA:
-                return Algorithm.RSA;
+            case BS:
+                return Algorithm.BS;
             default:
                 throw new CustomRuntimeException("Algorithm not supported");
         }

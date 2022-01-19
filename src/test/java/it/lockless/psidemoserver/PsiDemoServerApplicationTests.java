@@ -41,17 +41,5 @@ class PsiDemoServerApplicationTests {
 	@Test
 	void secretConfigText(){
 
-		for(AlgorithmDTO algorithm: Algorithm.values())
-			for(int size : algorithm.getSupportedKeySize())
-				if(supportedAlgorithms.get(algorithm,size).isPresent())
-					System.out.println(algorithm+" - "+size+" - "+supportedAlgorithms.get(algorithm,size).get().getModulus());
-
-		System.out.println();
-
-		for(AlgorithmDTO algorithm: Algorithm.values())
-			for(int size : algorithm.getSupportedKeySize())
-				if(supportedAlgorithms.get(algorithm,size).isPresent())
-					System.out.println(algorithm+" - "+size+" - "+supportedAlgorithms.get(algorithm,size).get().getModulus());
 	}
-
 }

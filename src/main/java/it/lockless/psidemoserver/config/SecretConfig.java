@@ -65,6 +65,7 @@ public class SecretConfig {
         KeyFactory keyFactory;
         try {
             String keyType = algorithm.toString();
+            if(keyType.equals("BS")) keyType = "RSA";
             keyGenerator = KeyPairGenerator.getInstance(keyType);
             keyFactory = KeyFactory.getInstance(keyType);
         } catch (NoSuchAlgorithmException e) {
@@ -75,7 +76,7 @@ public class SecretConfig {
 
         try {
             switch (algorithm) {
-                case RSA:
+                case BS:
                     RSAPrivateKeySpec rsaPrivateKeySpec = keyFactory.getKeySpec(pair.getPrivate(), RSAPrivateKeySpec.class);
                     psiKey.setModulus(CustomTypeConverter.convertBigIntegerToString(rsaPrivateKeySpec.getModulus()));
                     psiKey.setPrivateKey(CustomTypeConverter.convertBigIntegerToString(rsaPrivateKeySpec.getPrivateExponent()));

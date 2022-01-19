@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import psi.dto.PsiAlgorithmParameterDTO;
 import psi.server.PsiServer;
 
 import java.util.*;
@@ -29,12 +30,14 @@ public class EncryptionService {
         this.psiElementRepository = psiElementRepository;
     }
 
-    public List<SessionParameterDTO> getAvailableSessionParameterDTO(){
-        List<SessionParameterDTO> sessionParameterDTOList = new LinkedList<>();
-        for (Algorithm algorithm : Algorithm.values())
+    public List<PsiAlgorithmParameterDTO> getAvailableSessionParameterDTO(){
+        List<PsiAlgorithmParameterDTO> sessionParameterDTOList = new LinkedList<>();
+        for (Algorithm algorithm : Algorithm.values()) {
+            if (algorithm.equals(Algorithm.DH)) continue;//TODO: remove when implemented
             for (int keySize : algorithm.getSupportedKeySize())
                 sessionParameterDTOList.add(
-                        new SessionParameterDTO(AlgorithmMapper.toDTO(algorithm), keySize));
+                        new PsiAlgorithmParameterDTO(AlgorithmMapper.toDTO(algorithm), keySize));
+        }
 
         return sessionParameterDTOList;
     }

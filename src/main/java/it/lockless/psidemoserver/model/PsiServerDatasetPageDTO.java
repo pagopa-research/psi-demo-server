@@ -1,5 +1,6 @@
 package it.lockless.psidemoserver.model;
 
+import java.util.Objects;
 import java.util.Set;
 
 public class PsiServerDatasetPageDTO {
@@ -72,6 +73,25 @@ public class PsiServerDatasetPageDTO {
 
     public void setContent(Set<String> content) {
         this.content = content;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PsiServerDatasetPageDTO that = (PsiServerDatasetPageDTO) o;
+        return Objects.equals(page, that.page) &&
+                Objects.equals(size, that.size) &&
+                Objects.equals(entries, that.entries) &&
+                Objects.equals(last, that.last) &&
+                Objects.equals(totalPages, that.totalPages) &&
+                Objects.equals(totalEntries, that.totalEntries) &&
+                Objects.equals(content, that.content);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(page, size, entries, last, totalPages, totalEntries, content);
     }
 
     @Override

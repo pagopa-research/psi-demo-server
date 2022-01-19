@@ -25,7 +25,7 @@ public class PsiKey implements Serializable {
     @Column(name = "key_size", nullable = false)
     private Integer keySize;
 
-    @Column(name = "key_id")
+    @Column(name = "key_id", nullable = false)
     private Long keyId;
 
     @Column(name = "modulus", columnDefinition="TEXT")

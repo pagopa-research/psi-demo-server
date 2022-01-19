@@ -1,26 +1,20 @@
 package it.lockless.psidemoserver.service;
 
 import it.lockless.psidemoserver.config.StoredAlgorithmKey;
-import it.lockless.psidemoserver.entity.PsiElement;
 import it.lockless.psidemoserver.entity.PsiKey;
 import it.lockless.psidemoserver.entity.PsiSession;
 import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 import it.lockless.psidemoserver.mapper.AlgorithmMapper;
-import it.lockless.psidemoserver.model.PsiServerDatasetPageDTO;
 import it.lockless.psidemoserver.model.PsiSessionWrapperDTO;
 import it.lockless.psidemoserver.model.SessionParameterDTO;
-import it.lockless.psidemoserver.model.PsiDatasetMapDTO;
-import it.lockless.psidemoserver.repository.PsiElementRepository;
 import it.lockless.psidemoserver.repository.PsiKeyRepository;
 import it.lockless.psidemoserver.repository.PsiSessionRepository;
+import it.lockless.psidemoserver.service.cache.PsiCacheProviderImplementation;
 import it.lockless.psidemoserver.util.exception.AlgorithmNotSupportedException;
 import it.lockless.psidemoserver.util.exception.KeyNotAvailableException;
 import it.lockless.psidemoserver.util.exception.SessionExpiredException;
 import it.lockless.psidemoserver.util.exception.SessionNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import psi.dto.PsiAlgorithmParameterDTO;
 import psi.mapper.SessionDtoMapper;
@@ -33,34 +27,33 @@ import psi.server.model.PsiServerSession;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
 
 @Service
 public class PsiSessionService {
 
-    @Value("session.expiration.minutes")
+    @Value("${session.expiration.minutes}")
     private int minutesBeforeSessionExpiration;
 
     private final PsiSessionRepository psiSessionRepository;
 
     private final PsiKeyRepository psiKeyRepository;
 
-    private final PsiElementRepository psiElementRepository;
-
     private final StoredAlgorithmKey storedAlgorithmKey;
 
-    public PsiSessionService(PsiSessionRepository psiSessionRepository, PsiKeyRepository psiKeyRepository, PsiElementRepository psiElementRepository, StoredAlgorithmKey storedAlgorithmKey) {
+    private final PsiCacheProviderImplementation psiCacheProviderImplementation;
+
+    public PsiSessionService(PsiSessionRepository psiSessionRepository, PsiKeyRepository psiKeyRepository, StoredAlgorithmKey storedAlgorithmKey, PsiCacheProviderImplementation psiCacheProviderImplementation) {
         this.psiSessionRepository = psiSessionRepository;
         this.psiKeyRepository = psiKeyRepository;
-        this.psiElementRepository = psiElementRepository;
         this.storedAlgorithmKey = storedAlgorithmKey;
+        this.psiCacheProviderImplementation = psiCacheProviderImplementation;
     }
 
     public Instant getExpirationTime(){
         return Instant.now().minus(minutesBeforeSessionExpiration, ChronoUnit.MINUTES);
     }
 
-    public PsiSessionWrapperDTO initSession(SessionParameterDTO sessionParameterDTO) {
+    public PsiSessionWrapperDTO initSession(PsiAlgorithmParameterDTO sessionParameterDTO) {
         // fulfill PsiAlgorithmParameterDTO
         PsiAlgorithmParameterDTO psiAlgorithmParameterDTO = new PsiAlgorithmParameterDTO();
         psiAlgorithmParameterDTO.setAlgorithm(sessionParameterDTO.getAlgorithm().toString());
@@ -76,7 +69,7 @@ public class PsiSessionService {
         PsiServerKeyDescription psiServerKeyDescription;
         //TODO: abbiamo un metodo che la genera passandogli le info necessarie?
         switch(sessionParameterDTO.getAlgorithm()){
-            case RSA:
+            case BS:
                 BsPsiServerKeyDescription bsServerKeyDescription = new BsPsiServerKeyDescription();
                 bsServerKeyDescription.setModulus(psiKey.getModulus());
                 bsServerKeyDescription.setPrivateKey(psiKey.getPrivateKey());
@@ -91,11 +84,11 @@ public class PsiSessionService {
         }
 
         // Init a new server session
-        PsiServerSession psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameterDTO, psiServerKeyDescription);
+        PsiServerSession psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameterDTO, psiServerKeyDescription, psiCacheProviderImplementation);
 
         // Storing the session into the DB
         PsiSession psiSession = new PsiSession();
-        psiSession.setCacheEnabled(false);
+        psiSession.setCacheEnabled(true);
         psiSession.setKeySize(sessionParameterDTO.getKeySize());
         psiSession.setAlgorithm(AlgorithmMapper.toEntity(sessionParameterDTO.getAlgorithm()));
         psiSession.setKeyId(psiKey.getKeyId());
@@ -113,20 +106,20 @@ public class PsiSessionService {
 
     PsiServer loadPsiServerBySessionId(long sessionId) throws SessionNotFoundException, SessionExpiredException {
         PsiServerSession psiServerSession = getPsiServerSession(sessionId);
-        return PsiServerFactory.loadSession(psiServerSession);
+        return PsiServerFactory.loadSession(psiServerSession, psiCacheProviderImplementation);
     }
 
     //TODO: spostare questo metodo nella libreria? (magari già c'è) Far diventare gli algoritmi un enum?
     private static PsiServerSession buildPsiServerSession(Algorithm algorithm, int keySize, String modulus, String privateKey){
         PsiServerSession psiServerSession;
         switch(algorithm){
-            case RSA:
+            case BS:
                 BsPsiServerSession bsServerSession = new BsPsiServerSession();
                 bsServerSession.setAlgorithm("BS");
                 bsServerSession.setKeySize(keySize);
                 bsServerSession.setModulus(modulus);
                 bsServerSession.setServerPrivateKey(privateKey);
-                bsServerSession.setCacheEnabled(false); //TODO, dipendentemente dalla presenza di una keyId
+                bsServerSession.setCacheEnabled(true); //TODO, dipendentemente dalla presenza di una keyId
                 psiServerSession = bsServerSession;
                 break;
             case DH:

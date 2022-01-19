@@ -1,6 +1,7 @@
 package it.lockless.psidemoserver.model;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class PsiDatasetMapDTO {
 
@@ -20,6 +21,19 @@ public class PsiDatasetMapDTO {
 
     public void setContent(Map<Long, String> content) {
         this.content = content;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PsiDatasetMapDTO that = (PsiDatasetMapDTO) o;
+        return Objects.equals(content, that.content);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(content);
     }
 
     @Override
