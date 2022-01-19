@@ -49,7 +49,7 @@ public class PsiCacheProviderImplementation implements PsiCacheProvider {
     public void put(long keyId, PsiCacheOperationType cacheObjectType, String input, String output){
         Map<PsiCacheOperationType, Map<String, String>> keyIdMap = rootMap.computeIfAbsent(keyId, k -> new ConcurrentHashMap<>());
         Map<String, String> optTypeMap = keyIdMap.computeIfAbsent(cacheObjectType, k -> new ConcurrentHashMap<>());
-        optTypeMap.put(input, output);
+        optTypeMap.putIfAbsent(input, output);
     }
 
     public long size (){
