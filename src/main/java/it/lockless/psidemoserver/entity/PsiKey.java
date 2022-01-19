@@ -19,14 +19,14 @@ public class PsiKey implements Serializable {
     @Column(name = "id")
     private long id;
 
+    @Column(name = "key_id", nullable = false)
+    private Long keyId;
+
     @Column(name = "algorithm", nullable = false)
     private Algorithm algorithm;
 
     @Column(name = "key_size", nullable = false)
     private Integer keySize;
-
-    @Column(name = "key_id", nullable = false)
-    private Long keyId;
 
     @Column(name = "modulus", nullable = false, columnDefinition="TEXT")
     private String modulus;

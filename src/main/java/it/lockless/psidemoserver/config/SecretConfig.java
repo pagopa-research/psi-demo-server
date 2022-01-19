@@ -1,63 +1,52 @@
 package it.lockless.psidemoserver.config;
 
 import it.lockless.psidemoserver.entity.PsiKey;
-import it.lockless.psidemoserver.repository.PsiKeyRepository;
 import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 import it.lockless.psidemoserver.util.exception.AlgorithmInvalidKeyException;
 import it.lockless.psidemoserver.util.exception.AlgorithmNotSupportedException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import psi.utils.Base64EncoderHelper;
 import psi.utils.CustomTypeConverter;
 
 import javax.crypto.spec.DHPrivateKeySpec;
-import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
+import java.io.*;
+import java.nio.file.Files;
+import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Stream;
 
 @Component
 public class SecretConfig {
 
-    private final PsiKeyRepository psiKeyRepository;
-
-    public SecretConfig(PsiKeyRepository psiKeyRepository) {
-        this.psiKeyRepository = psiKeyRepository;
-    }
+    private final String keyStoreFileName = "key.store";
 
     @Bean
-    //TODO: Transactional?
-    public StoredAlgorithmKey loadSecrets() {
-        StoredAlgorithmKey supportedAlgorithms = new StoredAlgorithmKey();
-
-        if (supportedAlgorithms.keyMap == null)
-            supportedAlgorithms.keyMap = new HashMap<Algorithm, Map<Integer, PsiKey>>(Algorithm.values().length);
+    public StoredAlgorithmKey createStoredAlgorithmKey() {
+        Set<PsiKey> psiKeySet = loadKeySetFromFile();
+        int originalPsiKeySet = psiKeySet.size();
 
         for (Algorithm algorithm : Algorithm.values()) {
-            Map<Integer, PsiKey> psiKeyMap = supportedAlgorithms.keyMap.get(algorithm);
-            if (psiKeyMap == null) {
-                psiKeyMap = new HashMap<>(algorithm.getSupportedKeySize().size());
-                supportedAlgorithms.keyMap.put(algorithm, psiKeyMap);
+            for(Integer keySize : algorithm.getSupportedKeySize()){
+                PsiKey psiKey = psiKeySet.stream()
+                        .filter(k -> (k.getAlgorithm().equals(algorithm) && k.getKeySize().equals(keySize)))
+                        .findAny().orElse(null);
+                if (psiKey == null)
+                    psiKeySet.add(generateKey(algorithm, keySize));
             }
-            for(Integer keySize : algorithm.getSupportedKeySize())
-                if(!psiKeyMap.containsKey(keySize))
-                    psiKeyMap.put(keySize, generateKey(algorithm, keySize));
         }
 
-        return supportedAlgorithms;
+        if(originalPsiKeySet != psiKeySet.size())
+            writeKeySetFromFile(psiKeySet);
+        return new StoredAlgorithmKey(psiKeySet);
     }
 
     private PsiKey generateKey(Algorithm algorithm, int keySize) {
         PsiKey psiKey = new PsiKey();
         // Search the key in the DB
-        Optional<PsiKey> psiKeyOptional = psiKeyRepository.findByAlgorithmAndKeySize(algorithm,keySize);
-        if(psiKeyOptional.isPresent())
-            return psiKeyOptional.get();
 
         // If there is not a key stored in the DB, a new one is generated
         KeyPairGenerator keyGenerator;
@@ -95,8 +84,37 @@ public class SecretConfig {
 
         psiKey.setAlgorithm(algorithm);
         psiKey.setKeySize(keySize);
-        psiKeyRepository.save(psiKey);
 
         return psiKey;
+    }
+    
+    private Set<PsiKey> loadKeySetFromFile(){;
+        Set<PsiKey> psiKeySet = new HashSet<>();
+        File keyStoreFile = new File(keyStoreFileName);
+
+        if(keyStoreFile.exists()) {
+            try {
+                try (Stream<String> stream = Files.lines(keyStoreFile.toPath())) {
+                    stream.forEach(x -> psiKeySet.add(Base64EncoderHelper.base64ToObject(x, PsiKey.class)));
+                }
+            } catch (IOException e) {}
+
+        }
+        return psiKeySet;
+    }
+
+    private boolean writeKeySetFromFile(Set<PsiKey> psiKeySet){
+        File keyStoreFile = new File(keyStoreFileName);
+        try {
+            if (!keyStoreFile.exists())
+                keyStoreFile.createNewFile();
+            FileWriter fileWriter = new FileWriter(keyStoreFile, false);
+            for (PsiKey psiKey : psiKeySet)
+                fileWriter.write(Base64EncoderHelper.objectToBase64(psiKey)+"\n");
+            fileWriter.close();
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 }
