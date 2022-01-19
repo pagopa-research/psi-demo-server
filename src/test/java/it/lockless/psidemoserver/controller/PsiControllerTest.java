@@ -1,25 +1,21 @@
 package it.lockless.psidemoserver.controller;
 
-import it.lockless.psidemoserver.config.StoredAlgorithmKey;
 import it.lockless.psidemoserver.entity.PsiElement;
-import it.lockless.psidemoserver.entity.enumeration.Algorithm;
+import it.lockless.psidemoserver.model.PsiDatasetMapDTO;
+import it.lockless.psidemoserver.model.PsiServerDatasetPageDTO;
 import it.lockless.psidemoserver.model.PsiSessionWrapperDTO;
 import it.lockless.psidemoserver.repository.PsiElementRepository;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.web.bind.annotation.RequestBody;
+import psi.client.PsiClient;
+import psi.client.PsiClientFactory;
 import psi.dto.PsiAlgorithmDTO;
 import psi.dto.PsiAlgorithmParameterDTO;
 
-import javax.validation.constraints.AssertTrue;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -28,20 +24,25 @@ import static org.junit.jupiter.api.Assertions.*;
 class PsiControllerTest {
 
 	@Autowired
-	PsiElementRepository psiElementRepository;
+	private PsiElementRepository psiElementRepository;
 
 	@Autowired
-	PsiController controller;
-
-
+	private PsiController controller;
 
 	@BeforeEach
 	void setup() {
-		int elements = 1000;
-		List<PsiElement> psiElementList = new ArrayList<>(elements);
-		for(int i = 0; i< elements; i++) {
-			PsiElement psiElement = new PsiElement();
-			psiElement.setValue("element-"+i);
+		int matchingElements = 10;
+		int mismatchingElements = 20;
+		List<PsiElement> psiElementList = new ArrayList<>(matchingElements+mismatchingElements);
+		PsiElement psiElement;
+		for(int i = 0; i< matchingElements; i++) {
+			psiElement = new PsiElement();
+			psiElement.setValue("MATCHING-"+i);
+			psiElementList.add(psiElement);
+		}
+		for(int i = 0; i< mismatchingElements; i++) {
+			psiElement = new PsiElement();
+			psiElement.setValue("SERVER-"+(matchingElements+i));
 			psiElementList.add(psiElement);
 		}
 		psiElementRepository.saveAll(psiElementList);
@@ -52,9 +53,7 @@ class PsiControllerTest {
 		// Retrieve the list of available algorithms and relative keySize
 		List<PsiAlgorithmParameterDTO> sessionParameterDTOList = controller.getParameters().getBody();
 		assertNotNull(sessionParameterDTOList);
-		sessionParameterDTOList.forEach(dto -> {
-			assertTrue(Arrays.asList(PsiAlgorithmDTO.values()).contains(dto.getAlgorithm()));
-		});
+		sessionParameterDTOList.forEach(dto -> assertTrue(Arrays.asList(PsiAlgorithmDTO.values()).contains(dto.getAlgorithm())));
 
 		PsiAlgorithmParameterDTO sessionParameterDTO = sessionParameterDTOList.get(0);
 
@@ -63,8 +62,49 @@ class PsiControllerTest {
 		assertNotNull(psiSessionWrapperDTO);
 		assertNotNull(psiSessionWrapperDTO.getPsiSessionDTO());
 		assertNotNull(psiSessionWrapperDTO.getExpiration());
-		assertEquals(sessionParameterDTO, psiSessionWrapperDTO.getPsiSessionDTO().getSessionParameterDTO());
-		System.out.println(psiSessionWrapperDTO);
+		assertEquals(sessionParameterDTO, psiSessionWrapperDTO.getPsiSessionDTO().getPsiAlgorithmParameterDTO());
+		Long sessionId = psiSessionWrapperDTO.getSessionId();
+
+		// CLIENT SIDE: Setup client
+		PsiClient psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO());
+
+		// CLIENT SIDE: Building and encrypting client dataset
+		Set<String> clientDataset = new HashSet<>(1500);
+		for(int i = 0 ; i < 10; i++) clientDataset.add("MATCHING-"+i);
+		for(int i = 10 ; i < 15; i++) clientDataset.add("CLIENT-"+i);
+
+		Map<Long, String> encryptedClientDataset = psiClient.loadAndEncryptClientDataset(clientDataset);
+		PsiDatasetMapDTO psiDatasetMapDTO = new PsiDatasetMapDTO(encryptedClientDataset);
+
+		// Double encrypt client dataset
+		PsiDatasetMapDTO returnedPsiDatasetMapDTO = controller.encryptClientDataset(sessionId, psiDatasetMapDTO).getBody();
+		assertNotNull(returnedPsiDatasetMapDTO);
+		assertEquals(clientDataset.size(), returnedPsiDatasetMapDTO.getContent().size());
+
+		// Encrypt server dataset in two different pages
+		PsiServerDatasetPageDTO page = controller.getEncryptedServerServerDataset(sessionId, 0, 20).getBody();
+		assertNotNull(page);
+		assertEquals(30,page.getTotalEntries());
+		assertEquals(2,page.getTotalPages());
+		assertEquals(20,page.getEntries());
+		assertEquals(20,page.getSize());
+		Set<String> encryptedServerDataset = new HashSet<>(page.getContent());
+		page = controller.getEncryptedServerServerDataset(sessionId, 1, 20).getBody();
+		assertNotNull(page);
+		assertEquals(10,page.getEntries());
+		assertEquals(20,page.getSize());
+		encryptedServerDataset.addAll(page.getContent());
+		assertEquals(30, encryptedServerDataset.size());
+
+		// SERVER SIDE: load server encrypted datasets
+		psiClient.loadServerDataset(encryptedServerDataset);
+		psiClient.loadDoubleEncryptedClientDataset(returnedPsiDatasetMapDTO.getContent());
+
+		// SERVER SIDE: compute psi
+		Set<String> psiSet = psiClient.computePsi();
+		assertEquals(10, psiSet.size());
+		psiSet.forEach(elem -> assertTrue(elem.startsWith("MATCHING-")));
+
 	}
 
 }

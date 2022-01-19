@@ -28,15 +28,14 @@ public class PsiKey implements Serializable {
     @Column(name = "key_id", nullable = false)
     private Long keyId;
 
-    @Column(name = "modulus", columnDefinition="TEXT")
+    @Column(name = "modulus", nullable = false, columnDefinition="TEXT")
     private String modulus;
+
+    @Column(name = "private_key", nullable = false, columnDefinition="TEXT")
+    private String privateKey;
 
     @Column(name = "public_key", columnDefinition="TEXT")
     private String publicKey;
-
-    @Column(name = "private_key", columnDefinition="TEXT")
-    private String privateKey;
-
 
     public long getId() {
         return id;

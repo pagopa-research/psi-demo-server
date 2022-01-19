@@ -27,10 +27,10 @@ public class PsiSession implements Serializable {
     @Column(name = "cache_enabled", nullable = false)
     private Boolean cacheEnabled;
 
-    @Column(name = "key_id")
+    @Column(name = "key_id", nullable = false)
     private Long keyId;
 
-    @Column(name = "expiration")
+    @Column(name = "expiration", nullable = false)
     private Instant expiration;
 
     public long getId() {

@@ -12,5 +12,4 @@ public interface PsiKeyRepository extends JpaRepository<PsiKey, Long> {
 
     Optional<PsiKey> findByAlgorithmAndKeySize(Algorithm algorithm, int keySize);
 
-    void save(PsiKey psiKey); //TODO: ma perchè lo devo mettere?
 }

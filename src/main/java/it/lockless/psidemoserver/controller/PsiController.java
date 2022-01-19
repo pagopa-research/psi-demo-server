@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import psi.dto.PsiAlgorithmParameterDTO;
 
+import javax.validation.Valid;
 import java.util.List;
 
 
@@ -45,7 +46,7 @@ public class PsiController {
 			@ApiResponse(responseCode = "400", description = "wrong or missing input"),
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@PostMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<PsiSessionWrapperDTO> initSession(@RequestBody PsiAlgorithmParameterDTO sessionParameterDTO) {
+	public ResponseEntity<PsiSessionWrapperDTO> initSession(@Valid @RequestBody PsiAlgorithmParameterDTO sessionParameterDTO) {
 		return ResponseEntity.ok(psiSessionService.initSession(sessionParameterDTO));
 	}
 
@@ -56,7 +57,7 @@ public class PsiController {
 			@ApiResponse(responseCode = "408", description = "session expired"),
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@PostMapping(value = "/{sessionId}/clientSet", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<PsiDatasetMapDTO> encryptClientDataset(@PathVariable("sessionId") Long sessionId, @RequestBody PsiDatasetMapDTO psiDatasetMapDTO) {
+	public ResponseEntity<PsiDatasetMapDTO> encryptClientDataset(@PathVariable("sessionId") Long sessionId, @Valid @RequestBody PsiDatasetMapDTO psiDatasetMapDTO) {
         try {
             return ResponseEntity.ok(encryptionService.encryptClientSet(sessionId, psiDatasetMapDTO));
         } catch (SessionNotFoundException e) {

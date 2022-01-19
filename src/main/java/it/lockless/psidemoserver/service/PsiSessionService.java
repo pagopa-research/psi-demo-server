@@ -48,8 +48,8 @@ public class PsiSessionService {
         this.psiCacheProviderImplementation = psiCacheProviderImplementation;
     }
 
-    public Instant getExpirationTime(){
-        return Instant.now().minus(minutesBeforeSessionExpiration, ChronoUnit.MINUTES);
+    private Instant getExpirationTime(){
+        return Instant.now().plus(minutesBeforeSessionExpiration, ChronoUnit.MINUTES);
     }
 
     public PsiSessionWrapperDTO initSession(PsiAlgorithmParameterDTO sessionParameterDTO) {
@@ -109,7 +109,7 @@ public class PsiSessionService {
     }
 
     //TODO: spostare questo metodo nella libreria? (magari già c'è) Far diventare gli algoritmi un enum?
-    private static PsiServerSession buildPsiServerSession(Algorithm algorithm, int keySize, String modulus, String privateKey){
+    private static PsiServerSession buildPsiServerSession(Algorithm algorithm, int keySize, String modulus, String privateKey, long keyId){
         PsiServerSession psiServerSession;
         switch(algorithm){
             case BS:
@@ -118,7 +118,8 @@ public class PsiSessionService {
                 bsServerSession.setKeySize(keySize);
                 bsServerSession.setModulus(modulus);
                 bsServerSession.setServerPrivateKey(privateKey);
-                bsServerSession.setCacheEnabled(true); //TODO, dipendentemente dalla presenza di una keyId
+                bsServerSession.setKeyId(keyId);
+                bsServerSession.setCacheEnabled(true);
                 psiServerSession = bsServerSession;
                 break;
             case DH:
@@ -134,24 +135,20 @@ public class PsiSessionService {
                 .orElseThrow(SessionNotFoundException::new);
         if(psiSession.getExpiration().isBefore(Instant.now()))
             throw new SessionExpiredException();
-        PsiKey psiKey = null;
-        if(psiSession.getKeyId() != null)
-            psiKey = psiKeyRepository.findByKeyId(psiSession.getKeyId())
+        PsiKey psiKey = psiKeyRepository.findByKeyId(psiSession.getKeyId())
                     .orElseThrow(KeyNotAvailableException::new);
 
-        return buildPsiServerSession(psiSession.getAlgorithm(), psiSession.getKeySize(), psiKey.getModulus(), psiKey.getPrivateKey());
+        return buildPsiServerSession(psiSession.getAlgorithm(), psiSession.getKeySize(), psiKey.getModulus(), psiKey.getPrivateKey(), psiKey.getKeyId());
     }
 
     public PsiSessionWrapperDTO getPsiSessionWrapperDTO(long sessionId) throws SessionNotFoundException {
         PsiSession psiSession = psiSessionRepository.findById(sessionId)
                 .orElseThrow(SessionNotFoundException::new);
-        PsiKey psiKey = null;
-        if(psiSession.getKeyId() != null)
-            psiKey = psiKeyRepository.findByKeyId(psiSession.getKeyId())
+        PsiKey psiKey =  psiKeyRepository.findByKeyId(psiSession.getKeyId())
                     .orElseThrow(KeyNotAvailableException::new);
 
         PsiServerSession psiServerSession =
-                buildPsiServerSession(psiSession.getAlgorithm(), psiSession.getKeySize(), psiKey.getModulus(), psiKey.getPrivateKey());
+                buildPsiServerSession(psiSession.getAlgorithm(), psiSession.getKeySize(), psiKey.getModulus(), psiKey.getPrivateKey(), psiKey.getKeyId());
 
         PsiSessionWrapperDTO psiSessionWrapperDTO = new PsiSessionWrapperDTO();
         psiSessionWrapperDTO.setExpiration(psiSession.getExpiration());
@@ -161,7 +158,5 @@ public class PsiSessionService {
 
         return psiSessionWrapperDTO;
     }
-
-
-
+    
 }
