@@ -8,6 +8,7 @@ import it.lockless.psidemoserver.model.PsiDatasetMapDTO;
 import it.lockless.psidemoserver.model.PsiServerDatasetPageDTO;
 import it.lockless.psidemoserver.model.PsiSessionWrapperDTO;
 import it.lockless.psidemoserver.model.SessionParameterDTO;
+import it.lockless.psidemoserver.service.EncryptionService;
 import it.lockless.psidemoserver.service.PsiSessionService;
 import it.lockless.psidemoserver.util.exception.SessionExpiredException;
 import it.lockless.psidemoserver.util.exception.SessionNotFoundException;
@@ -16,16 +17,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 
 @RestController
 @RequestMapping("/psi")
 public class PsiController {
+
 	private final PsiSessionService psiSessionService;
 
-	public PsiController(PsiSessionService psiSessionService) {
+	private final EncryptionService encryptionService;
+
+	public PsiController(PsiSessionService psiSessionService, EncryptionService encryptionService) {
 		this.psiSessionService = psiSessionService;
+		this.encryptionService = encryptionService;
 	}
 
 	@Operation(description = "Get a description of the PSI sessions supported by the server",  responses = {
@@ -33,7 +37,7 @@ public class PsiController {
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@GetMapping(value = "/parameters", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<List<SessionParameterDTO>> getParameters() {
-		return ResponseEntity.ok(psiSessionService.getAvailableSessionParameterDTO());
+		return ResponseEntity.ok(encryptionService.getAvailableSessionParameterDTO());
 	}
 
 	@Operation(description = "Create a new PSI session",  responses = {
@@ -54,7 +58,7 @@ public class PsiController {
 	@PostMapping(value = "/{sessionId}/clientSet", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PsiDatasetMapDTO> encryptClientDataset(@PathVariable("sessionId") Long sessionId, @RequestBody PsiDatasetMapDTO psiDatasetMapDTO) {
         try {
-            return ResponseEntity.ok(psiSessionService.encryptClientSet(sessionId, psiDatasetMapDTO));
+            return ResponseEntity.ok(encryptionService.encryptClientSet(sessionId, psiDatasetMapDTO));
         } catch (SessionNotFoundException e) {
             throw new EntityNotFoundProblem("sessionNotFound","Session identified by "+sessionId+" not found");
         } catch (SessionExpiredException e) {
@@ -74,7 +78,7 @@ public class PsiController {
 			@RequestParam(value="page", defaultValue = "0") Integer page,
 			@RequestParam(value="size", defaultValue = "1000") Integer size) {
         try {
-            return ResponseEntity.ok(psiSessionService.getEncryptedServerDataset(sessionId, page, size));
+            return ResponseEntity.ok(encryptionService.getEncryptedServerDataset(sessionId, page, size));
         } catch (SessionNotFoundException e) {
             throw new EntityNotFoundProblem("sessionNotFound","Session identified by "+sessionId+" not found");
         } catch (SessionExpiredException e) {
@@ -82,6 +86,17 @@ public class PsiController {
 		}
 	}
 
-
-
+	@Operation(description = "Get the status of a PSI session.",  responses = {
+			@ApiResponse(responseCode = "200", description = "successful operation"),
+			@ApiResponse(responseCode = "404", description = "session not found"),
+			@ApiResponse(responseCode = "500", description = "internal server error") })
+	@GetMapping(value = "/{sessionId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<PsiSessionWrapperDTO> getSession(
+			@PathVariable("sessionId") Long sessionId) {
+        try {
+            return ResponseEntity.ok(psiSessionService.getPsiSessionWrapperDTO(sessionId));
+        } catch (SessionNotFoundException e) {
+            throw new EntityNotFoundProblem("sessionNotFound","Session identified by "+sessionId+" not found");
+        }
+	}
 }
