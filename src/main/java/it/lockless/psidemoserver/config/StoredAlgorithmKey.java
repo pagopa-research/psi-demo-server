@@ -1,6 +1,5 @@
 package it.lockless.psidemoserver.config;
 
-import it.lockless.psidemoserver.entity.PsiKey;
 import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 
 import java.util.HashMap;

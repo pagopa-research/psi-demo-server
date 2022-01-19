@@ -11,6 +11,8 @@ import it.lockless.psidemoserver.service.EncryptionService;
 import it.lockless.psidemoserver.service.PsiSessionService;
 import it.lockless.psidemoserver.util.exception.SessionExpiredException;
 import it.lockless.psidemoserver.util.exception.SessionNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/psi")
 public class PsiController {
+
+	private static final Logger log = LoggerFactory.getLogger(PsiController.class);
 
 	private final PsiSessionService psiSessionService;
 

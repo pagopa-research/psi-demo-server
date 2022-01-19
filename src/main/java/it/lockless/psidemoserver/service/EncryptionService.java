@@ -8,6 +8,8 @@ import it.lockless.psidemoserver.model.PsiServerDatasetPageDTO;
 import it.lockless.psidemoserver.repository.PsiElementRepository;
 import it.lockless.psidemoserver.util.exception.SessionExpiredException;
 import it.lockless.psidemoserver.util.exception.SessionNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -20,6 +22,8 @@ import java.util.*;
 @Service
 public class EncryptionService {
 
+    private static final Logger log = LoggerFactory.getLogger(EncryptionService.class);
+
     private final PsiSessionService psiSessionService;
 
     private final PsiElementRepository psiElementRepository;
@@ -30,6 +34,7 @@ public class EncryptionService {
     }
 
     public List<PsiAlgorithmParameterDTO> getAvailableSessionParameterDTO(){
+        log.debug("Calling getAvailableSessionParameterDTO");
         List<PsiAlgorithmParameterDTO> sessionParameterDTOList = new LinkedList<>();
         for (Algorithm algorithm : Algorithm.values()) {
             if (algorithm.equals(Algorithm.DH)) continue;//TODO: remove when implemented
@@ -42,6 +47,7 @@ public class EncryptionService {
     }
 
     public PsiDatasetMapDTO encryptClientSet(long sessionId, PsiDatasetMapDTO clientSet) throws SessionNotFoundException, SessionExpiredException {
+        log.debug("Calling encryptClientSet with sessionId = {}, clientSet.size() = {}", sessionId, clientSet.getContent().size());
         // Retrieve psiServe instance
         PsiServer psiServer = psiSessionService.loadPsiServerBySessionId(sessionId);
 
@@ -53,6 +59,7 @@ public class EncryptionService {
     }
 
     public PsiServerDatasetPageDTO getEncryptedServerDataset(long sessionId, int page, int size) throws SessionNotFoundException, SessionExpiredException {
+        log.debug("Calling getEncryptedServerDataset with sessionId = {}, page = {}, size = {}", sessionId, page, size);
         // Retrieve psiServe instance
         PsiServer psiServer = psiSessionService.loadPsiServerBySessionId(sessionId);
 
