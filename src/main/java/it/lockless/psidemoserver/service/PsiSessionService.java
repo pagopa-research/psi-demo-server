@@ -1,13 +1,12 @@
 package it.lockless.psidemoserver.service;
 
-import it.lockless.psidemoserver.config.StoredAlgorithmKey;
 import it.lockless.psidemoserver.config.PsiKey;
+import it.lockless.psidemoserver.config.StoredAlgorithmKey;
 import it.lockless.psidemoserver.entity.PsiSession;
 import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 import it.lockless.psidemoserver.mapper.AlgorithmMapper;
 import it.lockless.psidemoserver.model.PsiSessionWrapperDTO;
 import it.lockless.psidemoserver.repository.PsiSessionRepository;
-import it.lockless.psidemoserver.service.cache.PsiCacheProviderImplementation;
 import it.lockless.psidemoserver.util.exception.KeyNotAvailableException;
 import it.lockless.psidemoserver.util.exception.SessionExpiredException;
 import it.lockless.psidemoserver.util.exception.SessionNotFoundException;
@@ -15,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import psi.cache.PsiCacheProvider;
 import psi.dto.PsiAlgorithmParameterDTO;
 import psi.mapper.SessionDTOMapper;
 import psi.server.*;
@@ -34,12 +34,12 @@ public class PsiSessionService {
 
     private final StoredAlgorithmKey storedAlgorithmKey;
 
-    private final PsiCacheProviderImplementation psiCacheProviderImplementation;
+    private final PsiCacheProvider psiCacheProvider;
 
-    public PsiSessionService(PsiSessionRepository psiSessionRepository, StoredAlgorithmKey storedAlgorithmKey, PsiCacheProviderImplementation psiCacheProviderImplementation) {
+    public PsiSessionService(PsiSessionRepository psiSessionRepository, StoredAlgorithmKey storedAlgorithmKey, PsiCacheProvider psiCacheProvider) {
         this.psiSessionRepository = psiSessionRepository;
         this.storedAlgorithmKey = storedAlgorithmKey;
-        this.psiCacheProviderImplementation = psiCacheProviderImplementation;
+        this.psiCacheProvider = psiCacheProvider;
     }
 
     private Instant getExpirationTime(){
@@ -58,10 +58,10 @@ public class PsiSessionService {
 
         // Build ServerKeyDescription
         PsiServerKeyDescription psiServerKeyDescription =
-                PsiServerKeyDescriptionFactory.createBsServerKeyDescription(psiKey.getPrivateKey(), psiKey.getPublicKey(), psiKey.getModulus(), psiKey.getKeyId());
+                PsiServerKeyDescriptionFactory.createBsServerKeyDescription(psiKey.getPrivateKey(), psiKey.getPublicKey(), psiKey.getModulus());
 
         // Init a new server session
-        PsiServerSession psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameterDTO, psiServerKeyDescription, psiCacheProviderImplementation);
+        PsiServerSession psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameterDTO, psiServerKeyDescription, psiCacheProvider);
 
         // Storing the session into the DB
         PsiSession psiSession = new PsiSession();
@@ -84,12 +84,12 @@ public class PsiSessionService {
     PsiServer loadPsiServerBySessionId(long sessionId) throws SessionNotFoundException, SessionExpiredException {
         log.debug("Calling loadPsiServerBySessionId with sessionId = {}", sessionId);
         PsiServerSession psiServerSession = getPsiServerSession(sessionId);
-        return PsiServerFactory.loadSession(psiServerSession, psiCacheProviderImplementation);
+        return PsiServerFactory.loadSession(psiServerSession, psiCacheProvider);
     }
 
     //TODO: spostare questo metodo nella libreria? (magari già c'è) Far diventare gli algoritmi un enum?
-    private PsiServerSession buildPsiServerSession(Algorithm algorithm, int keySize, String modulus, String privateKey, String publicKey, long keyId){
-        log.trace("Calling buildPsiServerSession with algorithm = {}, keySize = {}, keyId = {}", algorithm, keySize, keyId);
+    private PsiServerSession buildPsiServerSession(Algorithm algorithm, int keySize, String modulus, String privateKey, String publicKey){
+        log.trace("Calling buildPsiServerSession with algorithm = {}, keySize = {}", algorithm, keySize);
         // Fulfill PsiAlgorithmParameterDTO
         PsiAlgorithmParameterDTO psiAlgorithmParameterDTO = new PsiAlgorithmParameterDTO();
         psiAlgorithmParameterDTO.setAlgorithm(AlgorithmMapper.toDTO(algorithm));
@@ -97,10 +97,10 @@ public class PsiSessionService {
 
         // Build ServerKeyDescription
         PsiServerKeyDescription psiServerKeyDescription =
-                PsiServerKeyDescriptionFactory.createBsServerKeyDescription(privateKey, publicKey, modulus, keyId);
+                PsiServerKeyDescriptionFactory.createBsServerKeyDescription(privateKey, publicKey, modulus);
 
         // Init a new server session
-        return PsiServerFactory.initSession(psiAlgorithmParameterDTO, psiServerKeyDescription, psiCacheProviderImplementation);
+        return PsiServerFactory.initSession(psiAlgorithmParameterDTO, psiServerKeyDescription, psiCacheProvider);
     }
 
     private PsiServerSession getPsiServerSession(long sessionId) throws SessionNotFoundException, SessionExpiredException {
@@ -112,7 +112,7 @@ public class PsiSessionService {
         PsiKey psiKey = storedAlgorithmKey.findByKeyId(psiSession.getKeyId())
                     .orElseThrow(KeyNotAvailableException::new);
 
-        return buildPsiServerSession(psiSession.getAlgorithm(), psiSession.getKeySize(), psiKey.getModulus(), psiKey.getPrivateKey(), psiKey.getPublicKey(), psiKey.getKeyId());
+        return buildPsiServerSession(psiSession.getAlgorithm(), psiSession.getKeySize(), psiKey.getModulus(), psiKey.getPrivateKey(), psiKey.getPublicKey());
     }
 
     public PsiSessionWrapperDTO getPsiSessionWrapperDTO(long sessionId) throws SessionNotFoundException {
@@ -123,7 +123,7 @@ public class PsiSessionService {
                     .orElseThrow(KeyNotAvailableException::new);
 
         PsiServerSession psiServerSession =
-                buildPsiServerSession(psiSession.getAlgorithm(), psiSession.getKeySize(), psiKey.getModulus(), psiKey.getPrivateKey(), psiKey.getPublicKey(), psiKey.getKeyId());
+                buildPsiServerSession(psiSession.getAlgorithm(), psiSession.getKeySize(), psiKey.getModulus(), psiKey.getPrivateKey(), psiKey.getPublicKey());
 
         PsiSessionWrapperDTO psiSessionWrapperDTO = new PsiSessionWrapperDTO();
         psiSessionWrapperDTO.setExpiration(psiSession.getExpiration());

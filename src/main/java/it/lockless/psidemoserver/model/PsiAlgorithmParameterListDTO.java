@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public class PsiAlgorithmParameterListDTO {
 
-    List<PsiAlgorithmParameterDTO> content;
+    private List<PsiAlgorithmParameterDTO> content;
 
     public PsiAlgorithmParameterListDTO(List<PsiAlgorithmParameterDTO> content) {
         this.content = content;

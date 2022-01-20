@@ -1,15 +1,12 @@
 package it.lockless.psidemoserver.service.cache;
 
-import org.springframework.stereotype.Component;
 import psi.cache.PsiCacheProvider;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-//TODO: sostituire con redis
-@Component
-public class PsiCacheProviderImplementation implements PsiCacheProvider {
+public class MapCacheProvider implements PsiCacheProvider {
 
     private Map<String, String> cache = new ConcurrentHashMap<>();
 

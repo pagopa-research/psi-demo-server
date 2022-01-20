@@ -84,6 +84,13 @@
 			<version>5.3.9.RELEASE</version>
 		</dependency>
 
+		<!-- redis -->
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>4.0.1</version>
+		</dependency>
+
 		<!-- test only -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
