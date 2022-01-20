@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import it.lockless.psidemoserver.controller.errors.EntityNotFoundProblem;
 import it.lockless.psidemoserver.controller.errors.RequestTimeoutProblem;
+import it.lockless.psidemoserver.model.PsiAlgorithmParameterListDTO;
 import it.lockless.psidemoserver.model.PsiDatasetMapDTO;
 import it.lockless.psidemoserver.model.PsiServerDatasetPageDTO;
 import it.lockless.psidemoserver.model.PsiSessionWrapperDTO;
@@ -41,8 +42,8 @@ public class PsiController {
 			@ApiResponse(responseCode = "200", description = "successful operation"),
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@GetMapping(value = "/parameters", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<PsiAlgorithmParameterDTO>> getParameters() {
-		return ResponseEntity.ok(encryptionService.getAvailableSessionParameterDTO());
+	public ResponseEntity<PsiAlgorithmParameterListDTO> getParameters() {
+		return ResponseEntity.ok(new PsiAlgorithmParameterListDTO(encryptionService.getAvailableSessionParameterDTO()));
 	}
 
 	@Operation(description = "Create a new PSI session",  responses = {

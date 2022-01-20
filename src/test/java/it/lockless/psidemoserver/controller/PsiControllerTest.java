@@ -51,7 +51,7 @@ class PsiControllerTest {
 	@Test
 	void fullExecutionTest() {
 		// Retrieve the list of available algorithms and relative keySize
-		List<PsiAlgorithmParameterDTO> sessionParameterDTOList = controller.getParameters().getBody();
+		List<PsiAlgorithmParameterDTO> sessionParameterDTOList = controller.getParameters().getBody().getContent();
 		assertNotNull(sessionParameterDTOList);
 		sessionParameterDTOList.forEach(dto -> assertTrue(Arrays.asList(PsiAlgorithmDTO.values()).contains(dto.getAlgorithm())));
 
