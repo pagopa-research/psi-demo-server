@@ -8,6 +8,7 @@ import it.lockless.psidemoserver.model.PsiAlgorithmParameterListDTO;
 import it.lockless.psidemoserver.model.PsiDatasetMapDTO;
 import it.lockless.psidemoserver.model.PsiServerDatasetPageDTO;
 import it.lockless.psidemoserver.model.PsiSessionWrapperDTO;
+import it.lockless.psidemoserver.service.DatasetService;
 import it.lockless.psidemoserver.service.EncryptionService;
 import it.lockless.psidemoserver.service.PsiSessionService;
 import it.lockless.psidemoserver.util.exception.SessionExpiredException;
@@ -33,9 +34,12 @@ public class PsiController {
 
 	private final EncryptionService encryptionService;
 
-	public PsiController(PsiSessionService psiSessionService, EncryptionService encryptionService) {
+	private final DatasetService datasetService;
+
+	public PsiController(PsiSessionService psiSessionService, EncryptionService encryptionService, DatasetService datasetService) {
 		this.psiSessionService = psiSessionService;
 		this.encryptionService = encryptionService;
+		this.datasetService = datasetService;
 	}
 
 	@Operation(description = "Get a description of the PSI sessions supported by the server",  responses = {
@@ -116,8 +120,9 @@ public class PsiController {
 			@ApiResponse(responseCode = "400", description = "wrong or missing input"),
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@PostMapping(value = "/dataset", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<PsiDatasetMapDTO> intiServerDataset(@RequestBody Map<String, Integer> datasetStructure) {
-		log.debug("Calling intiServerDataset with intiServerDataset = {}", datasetStructure);
+	public ResponseEntity<PsiDatasetMapDTO> initServerDataset(@RequestBody Map<String, Integer> datasetStructure) {
+		log.debug("Calling initServerDataset with intiServerDataset = {}", datasetStructure);
+		datasetService.intiServerDataset(datasetStructure);
 		return ResponseEntity.ok().build();
 	}
 }
