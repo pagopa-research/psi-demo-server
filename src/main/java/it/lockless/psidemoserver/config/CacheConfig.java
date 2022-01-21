@@ -1,6 +1,5 @@
 package it.lockless.psidemoserver.config;
 
-import it.lockless.psidemoserver.service.cache.MapCacheProvider;
 import it.lockless.psidemoserver.service.cache.RedisPsiCacheProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +28,8 @@ public class CacheConfig {
         try {
             return new RedisPsiCacheProvider(host, port);
         } catch (JedisConnectionException e){
-            log.info("Redis is not reachable, continuing with local cache implementation");
-            return new MapCacheProvider();
+            log.info("Redis is not reachable, continuing without cache");
+            return null;
         }
     }
 }

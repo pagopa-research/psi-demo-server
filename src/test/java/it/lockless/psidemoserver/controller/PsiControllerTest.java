@@ -5,6 +5,7 @@ import it.lockless.psidemoserver.model.PsiDatasetMapDTO;
 import it.lockless.psidemoserver.model.PsiServerDatasetPageDTO;
 import it.lockless.psidemoserver.model.PsiSessionWrapperDTO;
 import it.lockless.psidemoserver.repository.PsiElementRepository;
+import it.lockless.psidemoserver.service.cache.RedisPsiCacheProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,9 @@ class PsiControllerTest {
 
 	@Autowired
 	private PsiController controller;
+
+	@Autowired
+	private RedisPsiCacheProvider cacheImplementation;
 
 	@BeforeEach
 	void setup() {
@@ -66,7 +70,7 @@ class PsiControllerTest {
 		Long sessionId = psiSessionWrapperDTO.getSessionId();
 
 		// CLIENT SIDE: Setup client
-		PsiClient psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO());
+		PsiClient psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO(), cacheImplementation);
 
 		// CLIENT SIDE: Building and encrypting client dataset
 		Set<String> clientDataset = new HashSet<>(1500);
@@ -96,11 +100,11 @@ class PsiControllerTest {
 		encryptedServerDataset.addAll(page.getContent());
 		assertEquals(30, encryptedServerDataset.size());
 
-		// SERVER SIDE: load server encrypted datasets
+		// CLIENT SIDE: load server encrypted datasets
 		psiClient.loadServerDataset(encryptedServerDataset);
 		psiClient.loadDoubleEncryptedClientDataset(returnedPsiDatasetMapDTO.getContent());
 
-		// SERVER SIDE: compute psi
+		// CLIENT SIDE: compute psi
 		Set<String> psiSet = psiClient.computePsi();
 		assertEquals(10, psiSet.size());
 		psiSet.forEach(elem -> assertTrue(elem.startsWith("MATCHING-")));

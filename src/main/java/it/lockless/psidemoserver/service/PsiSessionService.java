@@ -12,6 +12,7 @@ import it.lockless.psidemoserver.util.exception.SessionExpiredException;
 import it.lockless.psidemoserver.util.exception.SessionNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import psi.cache.PsiCacheProvider;
@@ -34,12 +35,16 @@ public class PsiSessionService {
 
     private final StoredAlgorithmKey storedAlgorithmKey;
 
-    private final PsiCacheProvider psiCacheProvider;
+    private PsiCacheProvider psiCacheProvider;
 
-    public PsiSessionService(PsiSessionRepository psiSessionRepository, StoredAlgorithmKey storedAlgorithmKey, PsiCacheProvider psiCacheProvider) {
+    @Autowired(required = false)
+    private void setPsiCacheProvider(PsiCacheProvider psiCacheProvider){
+        this.psiCacheProvider = psiCacheProvider;
+    }
+
+    public PsiSessionService(PsiSessionRepository psiSessionRepository, StoredAlgorithmKey storedAlgorithmKey) {
         this.psiSessionRepository = psiSessionRepository;
         this.storedAlgorithmKey = storedAlgorithmKey;
-        this.psiCacheProvider = psiCacheProvider;
     }
 
     private Instant getExpirationTime(){

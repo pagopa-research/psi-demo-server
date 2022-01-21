@@ -1,18 +1,22 @@
 package it.lockless.psidemoserver.service.cache;
 
-import it.lockless.psidemoserver.util.exception.RedisKeyAlreadyWrittenException;
+import it.lockless.psidemoserver.util.exception.CacheKeyAlreadyWrittenException;
 import psi.cache.PsiCacheProvider;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.util.Optional;
 
 public class RedisPsiCacheProvider implements PsiCacheProvider {
 
-    private final Jedis jedis;
+    //private final Jedis jedis;
+    private final JedisPool jedisPool;
 
     public RedisPsiCacheProvider(String host, int port) {
-        this.jedis = new Jedis(host,port);
-        this.jedis.ping();
+        //this.jedis = new Jedis(host,port);
+        //this.jedis.ping();
+        this.jedisPool = new JedisPool(host, port);
+        this.jedisPool.getResource().ping();
     }
     /**
      * Retrieve the value linked to a given key.
@@ -23,7 +27,10 @@ public class RedisPsiCacheProvider implements PsiCacheProvider {
      */
     @Override
     public Optional<String> get(String key) {
-        String cachedResponse = jedis.get(key);
+        String cachedResponse;
+        Jedis jedis = this.jedisPool.getResource();
+        cachedResponse = jedis.get(key);
+        this.jedisPool.returnResource(jedis);
         if(cachedResponse == null)
             return Optional.empty();
         else return Optional.of(cachedResponse);
@@ -38,8 +45,11 @@ public class RedisPsiCacheProvider implements PsiCacheProvider {
 
     @Override
     public void put(String key, String value) {
-        if(jedis.setnx(key, value) == 0)
-            throw new RedisKeyAlreadyWrittenException();
+        Jedis jedis = this.jedisPool.getResource();
+        long response = jedisPool.getResource().setnx(key, value);
+        this.jedisPool.returnResource(jedis);
+        if (response == 0)
+            throw new CacheKeyAlreadyWrittenException();
     }
 
 }
