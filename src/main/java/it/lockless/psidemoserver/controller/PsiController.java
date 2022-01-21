@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import psi.dto.PsiAlgorithmParameterDTO;
 
 import javax.validation.Valid;
+import java.util.Map;
 
 
 @RestController
@@ -108,5 +109,15 @@ public class PsiController {
         } catch (SessionNotFoundException e) {
             throw new EntityNotFoundProblem("sessionNotFound","Session identified by "+sessionId+" not found");
         }
+	}
+
+	@Operation(description = "Populate the server dataset depending on the input content, in the shape 'KEY-VALUE'",  responses = {
+			@ApiResponse(responseCode = "200", description = "successful operation"),
+			@ApiResponse(responseCode = "400", description = "wrong or missing input"),
+			@ApiResponse(responseCode = "500", description = "internal server error") })
+	@PostMapping(value = "/dataset", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<PsiDatasetMapDTO> intiServerDataset(@RequestBody Map<String, Integer> datasetStructure) {
+		log.debug("Calling intiServerDataset with intiServerDataset = {}", datasetStructure);
+		return ResponseEntity.ok().build();
 	}
 }
