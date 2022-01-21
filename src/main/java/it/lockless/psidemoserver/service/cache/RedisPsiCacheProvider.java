@@ -50,7 +50,7 @@ public class RedisPsiCacheProvider implements PsiCacheProvider {
     public void put(String key, String value) {
         log.trace("Calling put with key = {}, value = {}", key, value);
         Jedis jedis = this.jedisPool.getResource();
-        long response = jedisPool.getResource().setnx(key, value);
+        long response = jedis.setnx(key, value);
         this.jedisPool.returnResource(jedis);
         if (response == 0)
             throw new CacheKeyAlreadyWrittenException();
