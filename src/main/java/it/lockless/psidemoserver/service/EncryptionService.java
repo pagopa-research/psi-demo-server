@@ -65,8 +65,10 @@ public class EncryptionService {
 
         // Retrieve clear page
         Page<PsiElement> psiElementPage = psiElementRepository.findAll(PageRequest.of(page, size, Sort.by("id").ascending()));
+        log.debug("{}",psiElementPage.toString());
         Set<String> clearElementList = new HashSet<>(size);
         psiElementPage.iterator().forEachRemaining(element -> clearElementList.add(element.getValue()));
+        System.out.println(clearElementList);
 
         // Encrypt and build response
         PsiServerDatasetPageDTO psiServerDatasetPageDTO = new PsiServerDatasetPageDTO();
@@ -76,7 +78,7 @@ public class EncryptionService {
         psiServerDatasetPageDTO.setTotalPages(psiElementPage.getTotalPages());
         psiServerDatasetPageDTO.setPage(page);
         psiServerDatasetPageDTO.setEntries(clearElementList.size());
-        psiServerDatasetPageDTO.setLast(page >= psiElementPage.getTotalPages());
+        psiServerDatasetPageDTO.setLast((page + 1) >= psiElementPage.getTotalPages());
 
         return psiServerDatasetPageDTO;
     }

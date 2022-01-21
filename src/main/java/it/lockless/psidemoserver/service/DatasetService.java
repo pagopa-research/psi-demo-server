@@ -26,7 +26,7 @@ public class DatasetService {
         for(Map.Entry<String, Integer> entry : datasetStructure.entrySet()){
             for (int i = 0; i < entry.getValue(); i++) {
                 PsiElement psiElement = new PsiElement();
-                psiElement.setValue(entry.getKey()+"-"+entry.getValue());
+                psiElement.setValue(entry.getKey()+"-"+i);
                 psiElementRepository.save(psiElement);
             }
         }
