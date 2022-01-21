@@ -50,7 +50,7 @@ public class PsiController {
 			@ApiResponse(responseCode = "200", description = "successful operation"),
 			@ApiResponse(responseCode = "400", description = "wrong or missing input"),
 			@ApiResponse(responseCode = "500", description = "internal server error") })
-	@PostMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PsiSessionWrapperDTO> initSession(@Valid @RequestBody PsiAlgorithmParameterDTO sessionParameterDTO) {
 		log.debug("Calling initSession with sessionParameterDTO = {}", sessionParameterDTO);
 		return ResponseEntity.ok(psiSessionService.initSession(sessionParameterDTO));
