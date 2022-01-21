@@ -1,6 +1,8 @@
 package it.lockless.psidemoserver.service.cache;
 
 import it.lockless.psidemoserver.util.exception.CacheKeyAlreadyWrittenException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import psi.cache.PsiCacheProvider;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -9,15 +11,15 @@ import java.util.Optional;
 
 public class RedisPsiCacheProvider implements PsiCacheProvider {
 
-    //private final Jedis jedis;
+    private static final Logger log = LoggerFactory.getLogger(RedisPsiCacheProvider.class);
+
     private final JedisPool jedisPool;
 
     public RedisPsiCacheProvider(String host, int port) {
-        //this.jedis = new Jedis(host,port);
-        //this.jedis.ping();
         this.jedisPool = new JedisPool(host, port);
         this.jedisPool.getResource().ping();
     }
+
     /**
      * Retrieve the value linked to a given key.
      *
@@ -27,6 +29,7 @@ public class RedisPsiCacheProvider implements PsiCacheProvider {
      */
     @Override
     public Optional<String> get(String key) {
+        log.trace("Calling get with key = {}", key);
         String cachedResponse;
         Jedis jedis = this.jedisPool.getResource();
         cachedResponse = jedis.get(key);
@@ -45,6 +48,7 @@ public class RedisPsiCacheProvider implements PsiCacheProvider {
 
     @Override
     public void put(String key, String value) {
+        log.trace("Calling put with key = {}, value = {}", key, value);
         Jedis jedis = this.jedisPool.getResource();
         long response = jedisPool.getResource().setnx(key, value);
         this.jedisPool.returnResource(jedis);

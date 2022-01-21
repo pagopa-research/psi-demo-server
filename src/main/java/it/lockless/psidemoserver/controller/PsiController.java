@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 import psi.dto.PsiAlgorithmParameterDTO;
 
 import javax.validation.Valid;
-import java.util.List;
 
 
 @RestController
@@ -43,6 +42,7 @@ public class PsiController {
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@GetMapping(value = "/parameters", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PsiAlgorithmParameterListDTO> getParameters() {
+		log.debug("Calling getParameters");
 		return ResponseEntity.ok(new PsiAlgorithmParameterListDTO(encryptionService.getAvailableSessionParameterDTO()));
 	}
 
@@ -52,6 +52,7 @@ public class PsiController {
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@PostMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PsiSessionWrapperDTO> initSession(@Valid @RequestBody PsiAlgorithmParameterDTO sessionParameterDTO) {
+		log.debug("Calling initSession with sessionParameterDTO = {}", sessionParameterDTO);
 		return ResponseEntity.ok(psiSessionService.initSession(sessionParameterDTO));
 	}
 
@@ -63,6 +64,7 @@ public class PsiController {
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@PostMapping(value = "/{sessionId}/clientSet", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PsiDatasetMapDTO> encryptClientDataset(@PathVariable("sessionId") Long sessionId, @Valid @RequestBody PsiDatasetMapDTO psiDatasetMapDTO) {
+		log.debug("Calling encryptClientDataset with sessionId = {}, psiDatasetMapDTO.size() = {}", sessionId, psiDatasetMapDTO.getContent().size());
         try {
             return ResponseEntity.ok(encryptionService.encryptClientSet(sessionId, psiDatasetMapDTO));
         } catch (SessionNotFoundException e) {
@@ -83,6 +85,7 @@ public class PsiController {
 			@PathVariable("sessionId") Long sessionId,
 			@RequestParam(value="page", defaultValue = "0") Integer page,
 			@RequestParam(value="size", defaultValue = "1000") Integer size) {
+		log.debug("Calling PsiServerDatasetPageDTO with sessionId = {}, page = {}, size = {}", sessionId, page, size);
         try {
             return ResponseEntity.ok(encryptionService.getEncryptedServerDataset(sessionId, page, size));
         } catch (SessionNotFoundException e) {
@@ -99,6 +102,7 @@ public class PsiController {
 	@GetMapping(value = "/{sessionId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PsiSessionWrapperDTO> getSession(
 			@PathVariable("sessionId") Long sessionId) {
+		log.debug("Calling getSession with sessionId = {}", sessionId);
         try {
             return ResponseEntity.ok(psiSessionService.getPsiSessionWrapperDTO(sessionId));
         } catch (SessionNotFoundException e) {
