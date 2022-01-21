@@ -30,7 +30,7 @@ class PsiControllerTest {
 	@Autowired
 	private PsiController controller;
 
-	@Autowired
+	@Autowired(required = false)
 	private RedisPsiCacheProvider cacheImplementation;
 
 	@BeforeEach
@@ -70,7 +70,7 @@ class PsiControllerTest {
 		Long sessionId = psiSessionWrapperDTO.getSessionId();
 
 		// CLIENT SIDE: Setup client
-		PsiClient psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO(), cacheImplementation);
+		PsiClient psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO());
 
 		// CLIENT SIDE: Building and encrypting client dataset
 		Set<String> clientDataset = new HashSet<>(1500);
