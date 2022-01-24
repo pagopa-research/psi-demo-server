@@ -92,18 +92,13 @@ public class PsiSessionService {
         return PsiServerFactory.loadSession(psiServerSession, psiCacheProvider);
     }
 
-    //TODO: spostare questo metodo nella libreria? (magari già c'è)
     private PsiServerSession buildPsiServerSession(Algorithm algorithm, int keySize, String modulus, String privateKey, String publicKey){
         log.trace("Calling buildPsiServerSession with algorithm = {}, keySize = {}", algorithm, keySize);
         // Build ServerKeyDescription
         PsiServerKeyDescription psiServerKeyDescription = PsiServerKeyDescriptionFactory.createBsServerKeyDescription(privateKey, publicKey, modulus);
 
-        PsiServerSession psiServerSession = new PsiServerSession();
-        psiServerSession.setAlgorithm(AlgorithmMapper.toPsiAlgorithm(algorithm));
-        psiServerSession.setKeySize(keySize);
-        psiServerSession.setCacheEnabled(psiCacheProvider != null);
-        psiServerSession.setPsiServerKeyDescription(psiServerKeyDescription);
-        return psiServerSession;
+        // Build ServerSession
+        return new PsiServerSession(AlgorithmMapper.toPsiAlgorithm(algorithm), keySize, psiCacheProvider != null, psiServerKeyDescription);
     }
 
     private PsiServerSession getPsiServerSession(long sessionId) throws SessionNotFoundException, SessionExpiredException {
