@@ -44,7 +44,7 @@ public class PsiController {
 	@GetMapping(value = "/parameters", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PsiAlgorithmParameterListDTO> getParameters() {
 		log.debug("Calling getParameters");
-		return ResponseEntity.ok(new PsiAlgorithmParameterListDTO(encryptionService.getAvailableSessionParameterDTO()));
+		return ResponseEntity.ok(encryptionService.getAvailableSessionParameterDTO());
 	}
 
 	@Operation(description = "Create a new PSI session",  responses = {

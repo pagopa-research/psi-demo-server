@@ -6,6 +6,8 @@ public class PsiAlgorithmParameterDTO {
 
     private PsiAlgorithmParameter content;
 
+    public PsiAlgorithmParameterDTO() {}
+
     public PsiAlgorithmParameterDTO(PsiAlgorithmParameter content) {
         this.content = content;
     }

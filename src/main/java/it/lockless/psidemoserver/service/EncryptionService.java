@@ -3,6 +3,7 @@ package it.lockless.psidemoserver.service;
 import it.lockless.psidemoserver.entity.PsiElement;
 import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 import it.lockless.psidemoserver.mapper.AlgorithmMapper;
+import it.lockless.psidemoserver.model.PsiAlgorithmParameterListDTO;
 import it.lockless.psidemoserver.model.PsiDatasetMapDTO;
 import it.lockless.psidemoserver.model.PsiServerDatasetPageDTO;
 import it.lockless.psidemoserver.repository.PsiElementRepository;
@@ -33,18 +34,16 @@ public class EncryptionService {
         this.psiElementRepository = psiElementRepository;
     }
 
-    //TODO: spostare nella libreria?
-    public List<PsiAlgorithmParameter> getAvailableSessionParameterDTO(){
+    public PsiAlgorithmParameterListDTO getAvailableSessionParameterDTO(){
         log.debug("Calling getAvailableSessionParameterDTO");
         List<PsiAlgorithmParameter> sessionParameterDTOList = new LinkedList<>();
         for (Algorithm algorithm : Algorithm.values()) {
-            if (algorithm.equals(Algorithm.DH)) continue;//TODO: remove when implemented
             for (int keySize : algorithm.getSupportedKeySize())
                 sessionParameterDTOList.add(
                         new PsiAlgorithmParameter(AlgorithmMapper.toPsiAlgorithm(algorithm), keySize));
         }
 
-        return sessionParameterDTOList;
+        return new PsiAlgorithmParameterListDTO(sessionParameterDTOList);
     }
 
     public PsiDatasetMapDTO encryptClientSet(long sessionId, PsiDatasetMapDTO clientSet) throws SessionNotFoundException, SessionExpiredException {
