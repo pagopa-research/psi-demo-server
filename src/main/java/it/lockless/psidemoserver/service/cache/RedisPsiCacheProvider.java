@@ -17,7 +17,9 @@ public class RedisPsiCacheProvider implements PsiCacheProvider {
 
     public RedisPsiCacheProvider(String host, int port) {
         this.jedisPool = new JedisPool(host, port);
-        this.jedisPool.getResource().ping();
+        Jedis jedis = jedisPool.getResource();
+        jedis.ping();
+        this.jedisPool.returnResource(jedis);
     }
 
     /**

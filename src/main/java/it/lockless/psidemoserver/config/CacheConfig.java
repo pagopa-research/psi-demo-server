@@ -1,6 +1,6 @@
 package it.lockless.psidemoserver.config;
 
-import it.lockless.psidemoserver.service.cache.RedisPsiCacheProvider;
+import it.lockless.psidemoserver.service.cache.SingleThreadRedisPsiCacheProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +26,7 @@ public class CacheConfig {
     public PsiCacheProvider createCache() {
         log.info("Connecting to redis at host = {}, post = {}", host, port);
         try {
-            return new RedisPsiCacheProvider(host, port);
+            return new SingleThreadRedisPsiCacheProvider(host, port);
         } catch (JedisConnectionException e){
             log.info("Redis is not reachable, continuing without cache");
             return null;
