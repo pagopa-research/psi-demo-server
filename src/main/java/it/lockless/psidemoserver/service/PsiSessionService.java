@@ -6,7 +6,7 @@ import it.lockless.psidemoserver.entity.PsiSession;
 import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 import it.lockless.psidemoserver.mapper.AlgorithmMapper;
 import it.lockless.psidemoserver.model.PsiAlgorithmParameterDTO;
-import it.lockless.psidemoserver.model.PsiSessionWrapperDTO;
+import it.lockless.psidemoserver.model.PsiClientSessionDTO;
 import it.lockless.psidemoserver.repository.PsiSessionRepository;
 import it.lockless.psidemoserver.util.exception.KeyNotAvailableException;
 import it.lockless.psidemoserver.util.exception.SessionExpiredException;
@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import psi.cache.PsiCacheProvider;
+import psi.model.PsiAlgorithmParameter;
 import psi.model.PsiClientSession;
 import psi.server.*;
 
@@ -52,13 +53,15 @@ public class PsiSessionService {
         return Instant.now().plus(minutesBeforeSessionExpiration, ChronoUnit.MINUTES);
     }
 
-    public PsiSessionWrapperDTO initSession(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO) {
+    public PsiClientSessionDTO initSession(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO) {
         log.info("Calling initSession with psiAlgorithmParameterDTO = {}", psiAlgorithmParameterDTO);
+
+        PsiAlgorithmParameter psiAlgorithmParameter = psiAlgorithmParameterDTO.getContent();
 
         // Retrieve the key corresponding to the pair <algorithm, keySIze>
         PsiKey psiKey = storedAlgorithmKey.findByAlgorithmAndKeySize(
-                AlgorithmMapper.toEntity(psiAlgorithmParameterDTO.getContent().getAlgorithm()),
-                psiAlgorithmParameterDTO.getContent().getKeySize())
+                AlgorithmMapper.toEntity(psiAlgorithmParameter.getAlgorithm()),
+                psiAlgorithmParameter.getKeySize())
                 .orElseThrow(KeyNotAvailableException::new);
 
         // Build ServerKeyDescription
@@ -66,71 +69,84 @@ public class PsiSessionService {
                 PsiServerKeyDescriptionFactory.createBsServerKeyDescription(psiKey.getPrivateKey(), psiKey.getPublicKey(), psiKey.getModulus());
 
         // Init a new server session
-        PsiServerSession psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameterDTO.getContent(), psiServerKeyDescription, psiCacheProvider);
+        PsiServerSession psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameter, psiServerKeyDescription, psiCacheProvider);
 
         // Storing the session into the DB
         PsiSession psiSession = new PsiSession();
         psiSession.setCacheEnabled(psiCacheProvider != null);
-        psiSession.setKeySize(psiAlgorithmParameterDTO.getContent().getKeySize());
-        psiSession.setAlgorithm(AlgorithmMapper.toEntity(psiAlgorithmParameterDTO.getContent().getAlgorithm()));
+        psiSession.setKeySize(psiAlgorithmParameter.getKeySize());
+        psiSession.setAlgorithm(AlgorithmMapper.toEntity(psiAlgorithmParameter.getAlgorithm()));
         psiSession.setKeyId(psiKey.getKeyId());
         psiSession.setExpiration(getExpirationTime());
+        psiSession.setSessionId((long)(Math.random() * (Long.MAX_VALUE)));
         psiSessionRepository.save(psiSession);
 
-        PsiSessionWrapperDTO psiSessionWrapperDTO = new PsiSessionWrapperDTO();
-        psiSessionWrapperDTO.setExpiration(psiSession.getExpiration());
-        psiSessionWrapperDTO.setSessionId(psiSession.getId());
-        psiSessionWrapperDTO.setPsiClientSession(PsiClientSession.getFromServerSession(psiServerSession));
+        // Building the response containing the PsiClientSession used by the client to initialize its session
+        PsiClientSessionDTO psiClientSessionDTO = new PsiClientSessionDTO();
+        psiClientSessionDTO.setExpiration(psiSession.getExpiration());
+        psiClientSessionDTO.setSessionId(psiSession.getSessionId());
+        psiClientSessionDTO.setPsiClientSession(PsiClientSession.getFromServerSession(psiServerSession));
 
-        return psiSessionWrapperDTO;
+        return psiClientSessionDTO;
     }
 
     PsiServer loadPsiServerBySessionId(long sessionId) throws SessionNotFoundException, SessionExpiredException {
         log.debug("Calling loadPsiServerBySessionId with sessionId = {}", sessionId);
-        PsiServerSession psiServerSession = getPsiServerSession(sessionId);
-        return PsiServerFactory.loadSession(psiServerSession, psiCacheProvider);
+        return PsiServerFactory.loadSession(getPsiServerSession(sessionId), psiCacheProvider);
     }
 
     private PsiServerSession buildPsiServerSession(Algorithm algorithm, int keySize, String modulus, String privateKey, String publicKey){
         log.trace("Calling buildPsiServerSession with algorithm = {}, keySize = {}", algorithm, keySize);
-        // Build ServerKeyDescription
+        // Build the ServerKeyDescription to be passed into the PsiServerSession
         PsiServerKeyDescription psiServerKeyDescription = PsiServerKeyDescriptionFactory.createBsServerKeyDescription(privateKey, publicKey, modulus);
 
-        // Build ServerSession
+        // Build the ServerSession used to load the PsiServer
         return new PsiServerSession(AlgorithmMapper.toPsiAlgorithm(algorithm), keySize, psiCacheProvider != null, psiServerKeyDescription);
     }
 
     private PsiServerSession getPsiServerSession(long sessionId) throws SessionNotFoundException, SessionExpiredException {
         log.trace("Calling getPsiServerSession with sessionId = {}", sessionId);
-        PsiSession psiSession = psiSessionRepository.findById(sessionId)
+
+        // Retrieve the session information from the database.
+        // These information will be used to build the PsiServerSession object required to create the PsiServe object
+        PsiSession psiSession = psiSessionRepository.findBySessionId(sessionId)
                 .orElseThrow(SessionNotFoundException::new);
 
+        // Check if the session is expired
         if(psiSession.getExpiration().isBefore(Instant.now()))
             throw new SessionExpiredException();
 
+        // Retrieve the key used by the current session
         PsiKey psiKey = storedAlgorithmKey.findByKeyId(psiSession.getKeyId())
                     .orElseThrow(KeyNotAvailableException::new);
 
+        // Build the PsiServerSession object
         return buildPsiServerSession(psiSession.getAlgorithm(), psiSession.getKeySize(), psiKey.getModulus(), psiKey.getPrivateKey(), psiKey.getPublicKey());
     }
 
     // Used to check the status of the session
-    public PsiSessionWrapperDTO getPsiSessionWrapperDTO(long sessionId) throws SessionNotFoundException {
-        log.trace("Calling getPsiSessionWrapperDTO with sessionId = {}", sessionId);
-        PsiSession psiSession = psiSessionRepository.findById(sessionId)
+    public PsiClientSessionDTO getPsiClientSessionDTO(long sessionId) throws SessionNotFoundException {
+        log.trace("Calling getPsiClientSessionDTO with sessionId = {}", sessionId);
+
+        // Retrieve the session information from the database
+        PsiSession psiSession = psiSessionRepository.findBySessionId(sessionId)
                 .orElseThrow(SessionNotFoundException::new);
+
+        // Retrieve the key used by the current session
         PsiKey psiKey =  storedAlgorithmKey.findByKeyId(psiSession.getKeyId())
                     .orElseThrow(KeyNotAvailableException::new);
 
+        // Build the PsiServerSession object
         PsiServerSession psiServerSession =
                 buildPsiServerSession(psiSession.getAlgorithm(), psiSession.getKeySize(), psiKey.getModulus(), psiKey.getPrivateKey(), psiKey.getPublicKey());
 
-        PsiSessionWrapperDTO psiSessionWrapperDTO = new PsiSessionWrapperDTO();
-        psiSessionWrapperDTO.setExpiration(psiSession.getExpiration());
-        psiSessionWrapperDTO.setSessionId(psiSession.getId());
-        psiSessionWrapperDTO.setPsiClientSession(PsiClientSession.getFromServerSession(psiServerSession));
 
-        return psiSessionWrapperDTO;
+        PsiClientSessionDTO psiClientSessionDTO = new PsiClientSessionDTO();
+        psiClientSessionDTO.setExpiration(psiSession.getExpiration());
+        psiClientSessionDTO.setSessionId(psiSession.getId());
+        psiClientSessionDTO.setPsiClientSession(PsiClientSession.getFromServerSession(psiServerSession));
+
+        return psiClientSessionDTO;
     }
 
 }

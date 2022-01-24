@@ -2,8 +2,11 @@ package it.lockless.psidemoserver.model;
 
 import psi.model.PsiAlgorithmParameter;
 
+import javax.validation.constraints.NotNull;
+
 public class PsiAlgorithmParameterDTO {
 
+    @NotNull
     private PsiAlgorithmParameter content;
 
     public PsiAlgorithmParameterDTO() {}

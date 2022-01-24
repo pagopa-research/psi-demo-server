@@ -38,21 +38,21 @@ public class PsiController {
 		this.datasetService = datasetService;
 	}
 
-	@Operation(description = "Get a description of the PSI sessions supported by the server",  responses = {
+	@Operation(description = "Get a description of the PSI algorithms supported by the server.",  responses = {
 			@ApiResponse(responseCode = "200", description = "successful operation"),
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@GetMapping(value = "/parameters", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PsiAlgorithmParameterListDTO> getParameters() {
 		log.debug("Calling getParameters");
-		return ResponseEntity.ok(encryptionService.getAvailableSessionParameterDTO());
+		return ResponseEntity.ok(encryptionService.getAvailablePsiAlgorithmParameter());
 	}
 
-	@Operation(description = "Create a new PSI session",  responses = {
+	@Operation(description = "Create a new PSI session.",  responses = {
 			@ApiResponse(responseCode = "200", description = "successful operation"),
 			@ApiResponse(responseCode = "400", description = "wrong or missing input"),
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<PsiSessionWrapperDTO> initSession(@Valid @RequestBody PsiAlgorithmParameterDTO psiAlgorithmParameterDTO) {
+	public ResponseEntity<PsiClientSessionDTO> initSession(@Valid @RequestBody PsiAlgorithmParameterDTO psiAlgorithmParameterDTO) {
 		log.debug("Calling initSession with psiAlgorithmParameterDTO = {}", psiAlgorithmParameterDTO);
 		return ResponseEntity.ok(psiSessionService.initSession(psiAlgorithmParameterDTO));
 	}
@@ -101,11 +101,11 @@ public class PsiController {
 			@ApiResponse(responseCode = "404", description = "session not found"),
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@GetMapping(value = "/{sessionId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<PsiSessionWrapperDTO> getSession(
+	public ResponseEntity<PsiClientSessionDTO> getSession(
 			@PathVariable("sessionId") Long sessionId) {
 		log.debug("Calling getSession with sessionId = {}", sessionId);
         try {
-            return ResponseEntity.ok(psiSessionService.getPsiSessionWrapperDTO(sessionId));
+            return ResponseEntity.ok(psiSessionService.getPsiClientSessionDTO(sessionId));
         } catch (SessionNotFoundException e) {
             throw new EntityNotFoundProblem("sessionNotFound","Session identified by "+sessionId+" not found");
         }

@@ -11,13 +11,19 @@ import psi.utils.Base64EncoderHelper;
 import psi.utils.CustomTypeConverter;
 
 import javax.crypto.spec.DHPrivateKeySpec;
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
-import java.security.*;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Stream;
 
 // Important: this is only a mock of a real keyStore and it is not intended to be used in a real environment.
@@ -85,6 +91,8 @@ public class SecretConfig {
                     DHPrivateKeySpec dhPrivateKeySpec = keyFactory.getKeySpec(pair.getPrivate(), DHPrivateKeySpec.class);
                     psiKey.setModulus(CustomTypeConverter.convertBigIntegerToString(dhPrivateKeySpec.getP()));
                     psiKey.setPrivateKey(CustomTypeConverter.convertBigIntegerToString(dhPrivateKeySpec.getX()));
+                default:
+                    throw new AlgorithmNotSupportedException("The algorithm "+algorithm+" is not supported");
             }
         } catch (InvalidKeySpecException e) {
             throw new AlgorithmInvalidKeyException("KeySpec is invalid. Verify whether both the input algorithm and key size are correct and compatible.");
@@ -98,7 +106,7 @@ public class SecretConfig {
         return psiKey;
     }
 
-    private Set<PsiKey> loadKeySetFromFile(){;
+    private Set<PsiKey> loadKeySetFromFile(){
         log.info("Calling loadKeySetFromFile");
         Set<PsiKey> psiKeySet = new HashSet<>();
         File keyStoreFile = new File(KEY_STORE_FILENAME);
@@ -108,7 +116,9 @@ public class SecretConfig {
                 try (Stream<String> stream = Files.lines(keyStoreFile.toPath())) {
                     stream.forEach(x -> psiKeySet.add(Base64EncoderHelper.base64ToObject(x, PsiKey.class)));
                 }
-            } catch (IOException e) {}
+            } catch (IOException e) {
+                log.error("Unable to open file "+KEY_STORE_FILENAME);
+            }
 
         }
         return psiKeySet;

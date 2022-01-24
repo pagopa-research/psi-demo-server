@@ -34,16 +34,18 @@ public class EncryptionService {
         this.psiElementRepository = psiElementRepository;
     }
 
-    public PsiAlgorithmParameterListDTO getAvailableSessionParameterDTO(){
+    public PsiAlgorithmParameterListDTO getAvailablePsiAlgorithmParameter(){
         log.debug("Calling getAvailableSessionParameterDTO");
-        List<PsiAlgorithmParameter> sessionParameterDTOList = new LinkedList<>();
+
+        // Depending on the algorithms and keySize supported, populate a list if PsiAlgorithmParameter
+        List<PsiAlgorithmParameter> psiAlgorithmParameterList = new LinkedList<>();
         for (Algorithm algorithm : Algorithm.values()) {
+            if(algorithm.equals(Algorithm.DH)) continue; //TODO: remove when implemented
             for (int keySize : algorithm.getSupportedKeySize())
-                sessionParameterDTOList.add(
+                psiAlgorithmParameterList.add(
                         new PsiAlgorithmParameter(AlgorithmMapper.toPsiAlgorithm(algorithm), keySize));
         }
-
-        return new PsiAlgorithmParameterListDTO(sessionParameterDTOList);
+        return new PsiAlgorithmParameterListDTO(psiAlgorithmParameterList);
     }
 
     public PsiDatasetMapDTO encryptClientSet(long sessionId, PsiDatasetMapDTO clientSet) throws SessionNotFoundException, SessionExpiredException {
@@ -60,10 +62,10 @@ public class EncryptionService {
 
     public PsiServerDatasetPageDTO getEncryptedServerDataset(long sessionId, int page, int size) throws SessionNotFoundException, SessionExpiredException {
         log.debug("Calling getEncryptedServerDataset with sessionId = {}, page = {}, size = {}", sessionId, page, size);
-        // Retrieve psiServe instance
+        // Retrieve the psiServe instance
         PsiServer psiServer = psiSessionService.loadPsiServerBySessionId(sessionId);
 
-        // Retrieve clear page
+        // Retrieve a clear page depending on the specified page and size
         Page<PsiElement> psiElementPage = psiElementRepository.findAll(PageRequest.of(page, size, Sort.by("id").ascending()));
         Set<String> clearElementList = new HashSet<>(size);
         psiElementPage.iterator().forEachRemaining(element -> clearElementList.add(element.getValue()));

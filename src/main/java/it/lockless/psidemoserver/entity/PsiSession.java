@@ -5,9 +5,13 @@ import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Objects;
 
 @Entity
-@Table(name = "psi_session")
+@Table(name = "psi_session",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"session_id"}, name = "unique_session_id")
+        })
 public class PsiSession implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -32,6 +36,9 @@ public class PsiSession implements Serializable {
 
     @Column(name = "expiration", nullable = false)
     private Instant expiration;
+
+    @Column(name = "session_id", nullable = false)
+    private Long sessionId;
 
     public long getId() {
         return id;
@@ -81,5 +88,43 @@ public class PsiSession implements Serializable {
         this.expiration = expiration;
     }
 
+    public Long getSessionId() {
+        return sessionId;
+    }
 
+    public void setSessionId(Long sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PsiSession that = (PsiSession) o;
+        return id == that.id &&
+                algorithm == that.algorithm &&
+                Objects.equals(keySize, that.keySize) &&
+                Objects.equals(cacheEnabled, that.cacheEnabled) &&
+                Objects.equals(keyId, that.keyId) &&
+                Objects.equals(expiration, that.expiration) &&
+                Objects.equals(sessionId, that.sessionId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, algorithm, keySize, cacheEnabled, keyId, expiration, sessionId);
+    }
+
+    @Override
+    public String toString() {
+        return "PsiSession{" +
+                "id=" + id +
+                ", algorithm=" + algorithm +
+                ", keySize=" + keySize +
+                ", cacheEnabled=" + cacheEnabled +
+                ", keyId=" + keyId +
+                ", expiration=" + expiration +
+                ", sessionId=" + sessionId +
+                '}';
+    }
 }

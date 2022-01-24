@@ -2,9 +2,9 @@ package it.lockless.psidemoserver.controller;
 
 import it.lockless.psidemoserver.entity.PsiElement;
 import it.lockless.psidemoserver.model.PsiAlgorithmParameterDTO;
+import it.lockless.psidemoserver.model.PsiClientSessionDTO;
 import it.lockless.psidemoserver.model.PsiDatasetMapDTO;
 import it.lockless.psidemoserver.model.PsiServerDatasetPageDTO;
-import it.lockless.psidemoserver.model.PsiSessionWrapperDTO;
 import it.lockless.psidemoserver.repository.PsiElementRepository;
 import it.lockless.psidemoserver.service.cache.RedisPsiCacheProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,15 +63,15 @@ class PsiControllerTest {
 		PsiAlgorithmParameter psiAlgorithmParameter = sessionParameterList.get(0);
 
 		// Initialize a new Session
-		PsiSessionWrapperDTO psiSessionWrapperDTO = controller.initSession(new PsiAlgorithmParameterDTO(psiAlgorithmParameter)).getBody();
-		assertNotNull(psiSessionWrapperDTO);
-		assertNotNull(psiSessionWrapperDTO.getPsiClientSession());
-		assertNotNull(psiSessionWrapperDTO.getExpiration());
-		assertEquals(psiAlgorithmParameter, psiSessionWrapperDTO.getPsiClientSession().getPsiAlgorithmParameter());
-		Long sessionId = psiSessionWrapperDTO.getSessionId();
+		PsiClientSessionDTO psiClientSessionDTO = controller.initSession(new PsiAlgorithmParameterDTO(psiAlgorithmParameter)).getBody();
+		assertNotNull(psiClientSessionDTO);
+		assertNotNull(psiClientSessionDTO.getPsiClientSession());
+		assertNotNull(psiClientSessionDTO.getExpiration());
+		assertEquals(psiAlgorithmParameter, psiClientSessionDTO.getPsiClientSession().getPsiAlgorithmParameter());
+		Long sessionId = psiClientSessionDTO.getSessionId();
 
 		// CLIENT SIDE: Setup client
-		PsiClient psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiClientSession());
+		PsiClient psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession());
 
 		// CLIENT SIDE: Building and encrypting client dataset
 		Set<String> clientDataset = new HashSet<>(1500);

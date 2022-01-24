@@ -7,6 +7,6 @@ import java.util.Optional;
 
 public interface PsiSessionRepository extends JpaRepository<PsiSession, Long> {
 
-    Optional<PsiSession> findById(Long sessionId);
+    Optional<PsiSession> findBySessionId(Long sessionId);
 
 }

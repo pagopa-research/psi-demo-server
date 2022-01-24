@@ -6,13 +6,15 @@ import javax.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.Objects;
 
-public class PsiSessionWrapperDTO {
+public class PsiClientSessionDTO {
 
+    @NotNull
     private Long sessionId;
 
     @NotNull
     private Instant expiration;
 
+    @NotNull
     private PsiClientSession psiClientSession;
 
     public Long getSessionId() {
@@ -43,7 +45,7 @@ public class PsiSessionWrapperDTO {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PsiSessionWrapperDTO that = (PsiSessionWrapperDTO) o;
+        PsiClientSessionDTO that = (PsiClientSessionDTO) o;
         return Objects.equals(sessionId, that.sessionId) &&
                 Objects.equals(expiration, that.expiration) &&
                 Objects.equals(psiClientSession, that.psiClientSession);
@@ -56,7 +58,7 @@ public class PsiSessionWrapperDTO {
 
     @Override
     public String toString() {
-        return "PsiSessionWrapperDTO{" +
+        return "PsiClientSessionDTO{" +
                 "sessionId=" + sessionId +
                 ", expiration=" + expiration +
                 ", psiSessionDTO=" + psiClientSession +
