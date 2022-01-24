@@ -30,9 +30,8 @@ public class RedisPsiCacheProvider implements PsiCacheProvider {
     @Override
     public Optional<String> get(String key) {
         log.trace("Calling get with key = {}", key);
-        String cachedResponse;
         Jedis jedis = this.jedisPool.getResource();
-        cachedResponse = jedis.get(key);
+        String cachedResponse = jedis.get(key);
         this.jedisPool.returnResource(jedis);
         if(cachedResponse == null)
             return Optional.empty();

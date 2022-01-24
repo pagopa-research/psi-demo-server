@@ -33,6 +33,7 @@ public class EncryptionService {
         this.psiElementRepository = psiElementRepository;
     }
 
+    //TODO: spostare nella libreria?
     public List<PsiAlgorithmParameterDTO> getAvailableSessionParameterDTO(){
         log.debug("Calling getAvailableSessionParameterDTO");
         List<PsiAlgorithmParameterDTO> sessionParameterDTOList = new LinkedList<>();
@@ -40,7 +41,7 @@ public class EncryptionService {
             if (algorithm.equals(Algorithm.DH)) continue;//TODO: remove when implemented
             for (int keySize : algorithm.getSupportedKeySize())
                 sessionParameterDTOList.add(
-                        new PsiAlgorithmParameterDTO(AlgorithmMapper.toDTO(algorithm), keySize));
+                        new PsiAlgorithmParameterDTO(AlgorithmMapper.toPsiAlgorithm(algorithm), keySize));
         }
 
         return sessionParameterDTOList;

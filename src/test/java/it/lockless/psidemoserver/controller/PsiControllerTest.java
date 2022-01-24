@@ -13,8 +13,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import psi.client.PsiClient;
 import psi.client.PsiClientFactory;
-import psi.dto.PsiAlgorithmDTO;
 import psi.dto.PsiAlgorithmParameterDTO;
+import psi.model.PsiAlgorithm;
 
 import java.util.*;
 
@@ -57,7 +57,7 @@ class PsiControllerTest {
 		// Retrieve the list of available algorithms and relative keySize
 		List<PsiAlgorithmParameterDTO> sessionParameterDTOList = controller.getParameters().getBody().getContent();
 		assertNotNull(sessionParameterDTOList);
-		sessionParameterDTOList.forEach(dto -> assertTrue(Arrays.asList(PsiAlgorithmDTO.values()).contains(dto.getAlgorithm())));
+		sessionParameterDTOList.forEach(dto -> assertTrue(Arrays.asList(PsiAlgorithm.values()).contains(dto.getAlgorithm())));
 
 		PsiAlgorithmParameterDTO sessionParameterDTO = sessionParameterDTOList.get(0);
 

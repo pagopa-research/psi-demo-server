@@ -4,27 +4,29 @@ import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 import it.lockless.psidemoserver.util.exception.CustomRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import psi.dto.PsiAlgorithmDTO;
+import psi.model.PsiAlgorithm;
 
 public class AlgorithmMapper {
 
+    private AlgorithmMapper() {}
+
     private static final Logger log = LoggerFactory.getLogger(AlgorithmMapper.class);
 
-    public static PsiAlgorithmDTO toDTO(Algorithm algorithm){
+    public static PsiAlgorithm toPsiAlgorithm(Algorithm algorithm){
         log.trace("Calling toDTO with algorithm = {}", algorithm);
         switch (algorithm) {
             case DH:
-                return PsiAlgorithmDTO.DH;
+                return PsiAlgorithm.DH;
             case BS:
-                return PsiAlgorithmDTO.BS;
+                return PsiAlgorithm.BS;
             default:
                 throw new CustomRuntimeException("Algorithm not supported");
         }
     }
 
-    public static Algorithm toEntity(PsiAlgorithmDTO algorithmDTO){
-        log.trace("Calling toEntity with algorithmDTO = {}", algorithmDTO);
-        switch (algorithmDTO) {
+    public static Algorithm toEntity(PsiAlgorithm psiAlgorithm){
+        log.trace("Calling toEntity with algorithmDTO = {}", psiAlgorithm);
+        switch (psiAlgorithm) {
             case DH:
                 return Algorithm.DH;
             case BS:
