@@ -1,23 +1,23 @@
 package it.lockless.psidemoserver.model;
 
-import psi.dto.PsiAlgorithmParameterDTO;
+import psi.model.PsiAlgorithmParameter;
 
 import java.util.List;
 import java.util.Objects;
 
 public class PsiAlgorithmParameterListDTO {
 
-    private List<PsiAlgorithmParameterDTO> content;
+    private List<PsiAlgorithmParameter> content;
 
-    public PsiAlgorithmParameterListDTO(List<PsiAlgorithmParameterDTO> content) {
+    public PsiAlgorithmParameterListDTO(List<PsiAlgorithmParameter> content) {
         this.content = content;
     }
 
-    public List<PsiAlgorithmParameterDTO> getContent() {
+    public List<PsiAlgorithmParameter> getContent() {
         return content;
     }
 
-    public void setContent(List<PsiAlgorithmParameterDTO> content) {
+    public void setContent(List<PsiAlgorithmParameter> content) {
         this.content = content;
     }
 

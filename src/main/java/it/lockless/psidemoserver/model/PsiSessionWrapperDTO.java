@@ -1,6 +1,6 @@
 package it.lockless.psidemoserver.model;
 
-import psi.dto.PsiSessionDTO;
+import psi.model.PsiClientSession;
 
 import javax.validation.constraints.NotNull;
 import java.time.Instant;
@@ -13,7 +13,7 @@ public class PsiSessionWrapperDTO {
     @NotNull
     private Instant expiration;
 
-    private PsiSessionDTO psiSessionDTO;
+    private PsiClientSession psiClientSession;
 
     public Long getSessionId() {
         return sessionId;
@@ -31,12 +31,12 @@ public class PsiSessionWrapperDTO {
         this.expiration = expiration;
     }
 
-    public PsiSessionDTO getPsiSessionDTO() {
-        return psiSessionDTO;
+    public PsiClientSession getPsiClientSession() {
+        return psiClientSession;
     }
 
-    public void setPsiSessionDTO(PsiSessionDTO psiSessionDTO) {
-        this.psiSessionDTO = psiSessionDTO;
+    public void setPsiClientSession(PsiClientSession psiClientSession) {
+        this.psiClientSession = psiClientSession;
     }
 
     @Override
@@ -46,12 +46,12 @@ public class PsiSessionWrapperDTO {
         PsiSessionWrapperDTO that = (PsiSessionWrapperDTO) o;
         return Objects.equals(sessionId, that.sessionId) &&
                 Objects.equals(expiration, that.expiration) &&
-                Objects.equals(psiSessionDTO, that.psiSessionDTO);
+                Objects.equals(psiClientSession, that.psiClientSession);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(sessionId, expiration, psiSessionDTO);
+        return Objects.hash(sessionId, expiration, psiClientSession);
     }
 
     @Override
@@ -59,7 +59,7 @@ public class PsiSessionWrapperDTO {
         return "PsiSessionWrapperDTO{" +
                 "sessionId=" + sessionId +
                 ", expiration=" + expiration +
-                ", psiSessionDTO=" + psiSessionDTO +
+                ", psiSessionDTO=" + psiClientSession +
                 '}';
     }
 }

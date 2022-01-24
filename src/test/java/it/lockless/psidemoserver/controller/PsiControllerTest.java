@@ -1,6 +1,7 @@
 package it.lockless.psidemoserver.controller;
 
 import it.lockless.psidemoserver.entity.PsiElement;
+import it.lockless.psidemoserver.model.PsiAlgorithmParameterDTO;
 import it.lockless.psidemoserver.model.PsiDatasetMapDTO;
 import it.lockless.psidemoserver.model.PsiServerDatasetPageDTO;
 import it.lockless.psidemoserver.model.PsiSessionWrapperDTO;
@@ -13,8 +14,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import psi.client.PsiClient;
 import psi.client.PsiClientFactory;
-import psi.dto.PsiAlgorithmParameterDTO;
 import psi.model.PsiAlgorithm;
+import psi.model.PsiAlgorithmParameter;
 
 import java.util.*;
 
@@ -55,22 +56,22 @@ class PsiControllerTest {
 	@Test
 	void fullExecutionTest() {
 		// Retrieve the list of available algorithms and relative keySize
-		List<PsiAlgorithmParameterDTO> sessionParameterDTOList = controller.getParameters().getBody().getContent();
-		assertNotNull(sessionParameterDTOList);
-		sessionParameterDTOList.forEach(dto -> assertTrue(Arrays.asList(PsiAlgorithm.values()).contains(dto.getAlgorithm())));
+		List<PsiAlgorithmParameter> sessionParameterList = controller.getParameters().getBody().getContent();
+		assertNotNull(sessionParameterList);
+		sessionParameterList.forEach(dto -> assertTrue(Arrays.asList(PsiAlgorithm.values()).contains(dto.getAlgorithm())));
 
-		PsiAlgorithmParameterDTO sessionParameterDTO = sessionParameterDTOList.get(0);
+		PsiAlgorithmParameter psiAlgorithmParameter = sessionParameterList.get(0);
 
 		// Initialize a new Session
-		PsiSessionWrapperDTO psiSessionWrapperDTO = controller.initSession(sessionParameterDTO).getBody();
+		PsiSessionWrapperDTO psiSessionWrapperDTO = controller.initSession(new PsiAlgorithmParameterDTO(psiAlgorithmParameter)).getBody();
 		assertNotNull(psiSessionWrapperDTO);
-		assertNotNull(psiSessionWrapperDTO.getPsiSessionDTO());
+		assertNotNull(psiSessionWrapperDTO.getPsiClientSession());
 		assertNotNull(psiSessionWrapperDTO.getExpiration());
-		assertEquals(sessionParameterDTO, psiSessionWrapperDTO.getPsiSessionDTO().getPsiAlgorithmParameterDTO());
+		assertEquals(psiAlgorithmParameter, psiSessionWrapperDTO.getPsiClientSession().getPsiAlgorithmParameter());
 		Long sessionId = psiSessionWrapperDTO.getSessionId();
 
 		// CLIENT SIDE: Setup client
-		PsiClient psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiSessionDTO());
+		PsiClient psiClient = PsiClientFactory.loadSession(psiSessionWrapperDTO.getPsiClientSession());
 
 		// CLIENT SIDE: Building and encrypting client dataset
 		Set<String> clientDataset = new HashSet<>(1500);

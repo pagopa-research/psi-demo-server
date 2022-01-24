@@ -5,6 +5,7 @@ import it.lockless.psidemoserver.config.StoredAlgorithmKey;
 import it.lockless.psidemoserver.entity.PsiSession;
 import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 import it.lockless.psidemoserver.mapper.AlgorithmMapper;
+import it.lockless.psidemoserver.model.PsiAlgorithmParameterDTO;
 import it.lockless.psidemoserver.model.PsiSessionWrapperDTO;
 import it.lockless.psidemoserver.repository.PsiSessionRepository;
 import it.lockless.psidemoserver.util.exception.KeyNotAvailableException;
@@ -16,8 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import psi.cache.PsiCacheProvider;
-import psi.dto.PsiAlgorithmParameterDTO;
-import psi.mapper.SessionDTOMapper;
+import psi.model.PsiClientSession;
 import psi.server.*;
 
 import java.time.Instant;
@@ -57,8 +57,8 @@ public class PsiSessionService {
 
         // Retrieve the key corresponding to the pair <algorithm, keySIze>
         PsiKey psiKey = storedAlgorithmKey.findByAlgorithmAndKeySize(
-                AlgorithmMapper.toEntity(psiAlgorithmParameterDTO.getAlgorithm()),
-                psiAlgorithmParameterDTO.getKeySize())
+                AlgorithmMapper.toEntity(psiAlgorithmParameterDTO.getContent().getAlgorithm()),
+                psiAlgorithmParameterDTO.getContent().getKeySize())
                 .orElseThrow(KeyNotAvailableException::new);
 
         // Build ServerKeyDescription
@@ -66,13 +66,13 @@ public class PsiSessionService {
                 PsiServerKeyDescriptionFactory.createBsServerKeyDescription(psiKey.getPrivateKey(), psiKey.getPublicKey(), psiKey.getModulus());
 
         // Init a new server session
-        PsiServerSession psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameterDTO, psiServerKeyDescription, psiCacheProvider);
+        PsiServerSession psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameterDTO.getContent(), psiServerKeyDescription, psiCacheProvider);
 
         // Storing the session into the DB
         PsiSession psiSession = new PsiSession();
         psiSession.setCacheEnabled(psiCacheProvider != null);
-        psiSession.setKeySize(psiAlgorithmParameterDTO.getKeySize());
-        psiSession.setAlgorithm(AlgorithmMapper.toEntity(psiAlgorithmParameterDTO.getAlgorithm()));
+        psiSession.setKeySize(psiAlgorithmParameterDTO.getContent().getKeySize());
+        psiSession.setAlgorithm(AlgorithmMapper.toEntity(psiAlgorithmParameterDTO.getContent().getAlgorithm()));
         psiSession.setKeyId(psiKey.getKeyId());
         psiSession.setExpiration(getExpirationTime());
         psiSessionRepository.save(psiSession);
@@ -80,8 +80,7 @@ public class PsiSessionService {
         PsiSessionWrapperDTO psiSessionWrapperDTO = new PsiSessionWrapperDTO();
         psiSessionWrapperDTO.setExpiration(psiSession.getExpiration());
         psiSessionWrapperDTO.setSessionId(psiSession.getId());
-        psiSessionWrapperDTO.setPsiSessionDTO(
-                SessionDTOMapper.getSessionDtoFromServerSession(psiServerSession));
+        psiSessionWrapperDTO.setPsiClientSession(PsiClientSession.getFromServerSession(psiServerSession));
 
         return psiSessionWrapperDTO;
     }
@@ -129,8 +128,7 @@ public class PsiSessionService {
         PsiSessionWrapperDTO psiSessionWrapperDTO = new PsiSessionWrapperDTO();
         psiSessionWrapperDTO.setExpiration(psiSession.getExpiration());
         psiSessionWrapperDTO.setSessionId(psiSession.getId());
-        psiSessionWrapperDTO.setPsiSessionDTO(
-                SessionDTOMapper.getSessionDtoFromServerSession(psiServerSession));
+        psiSessionWrapperDTO.setPsiClientSession(PsiClientSession.getFromServerSession(psiServerSession));
 
         return psiSessionWrapperDTO;
     }

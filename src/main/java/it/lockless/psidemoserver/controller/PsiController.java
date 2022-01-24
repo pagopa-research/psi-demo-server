@@ -4,10 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import it.lockless.psidemoserver.controller.errors.EntityNotFoundProblem;
 import it.lockless.psidemoserver.controller.errors.RequestTimeoutProblem;
-import it.lockless.psidemoserver.model.PsiAlgorithmParameterListDTO;
-import it.lockless.psidemoserver.model.PsiDatasetMapDTO;
-import it.lockless.psidemoserver.model.PsiServerDatasetPageDTO;
-import it.lockless.psidemoserver.model.PsiSessionWrapperDTO;
+import it.lockless.psidemoserver.model.*;
 import it.lockless.psidemoserver.service.DatasetService;
 import it.lockless.psidemoserver.service.EncryptionService;
 import it.lockless.psidemoserver.service.PsiSessionService;
@@ -18,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import psi.dto.PsiAlgorithmParameterDTO;
 
 import javax.validation.Valid;
 import java.util.Map;
@@ -56,9 +52,9 @@ public class PsiController {
 			@ApiResponse(responseCode = "400", description = "wrong or missing input"),
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<PsiSessionWrapperDTO> initSession(@Valid @RequestBody PsiAlgorithmParameterDTO sessionParameterDTO) {
-		log.debug("Calling initSession with sessionParameterDTO = {}", sessionParameterDTO);
-		return ResponseEntity.ok(psiSessionService.initSession(sessionParameterDTO));
+	public ResponseEntity<PsiSessionWrapperDTO> initSession(@Valid @RequestBody PsiAlgorithmParameterDTO psiAlgorithmParameterDTO) {
+		log.debug("Calling initSession with psiAlgorithmParameterDTO = {}", psiAlgorithmParameterDTO);
+		return ResponseEntity.ok(psiSessionService.initSession(psiAlgorithmParameterDTO));
 	}
 
 	@Operation(description = "Retrieve the server encryption of the client dataset passed in input.",  responses = {
