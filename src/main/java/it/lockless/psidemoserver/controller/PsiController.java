@@ -2,8 +2,6 @@ package it.lockless.psidemoserver.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import it.lockless.psidemoserver.controller.errors.EntityNotFoundProblem;
-import it.lockless.psidemoserver.controller.errors.RequestTimeoutProblem;
 import it.lockless.psidemoserver.model.*;
 import it.lockless.psidemoserver.service.DatasetService;
 import it.lockless.psidemoserver.service.EncryptionService;
@@ -12,6 +10,7 @@ import it.lockless.psidemoserver.util.exception.SessionExpiredException;
 import it.lockless.psidemoserver.util.exception.SessionNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -69,9 +68,9 @@ public class PsiController {
         try {
             return ResponseEntity.ok(encryptionService.encryptClientSet(sessionId, psiDatasetMapDTO));
         } catch (SessionNotFoundException e) {
-            throw new EntityNotFoundProblem("sessionNotFound","Session identified by "+sessionId+" not found");
+        	return new ResponseEntity("Session identified by "+sessionId+" not found", HttpStatus.NOT_FOUND);
         } catch (SessionExpiredException e) {
-			throw new RequestTimeoutProblem("sessionExpired", "Session identified by "+sessionId+" is expired");
+			return new ResponseEntity("Session identified by "+sessionId+" is expired", HttpStatus.REQUEST_TIMEOUT);
 		}
 	}
 
@@ -90,9 +89,9 @@ public class PsiController {
         try {
             return ResponseEntity.ok(encryptionService.getEncryptedServerDataset(sessionId, page, size));
         } catch (SessionNotFoundException e) {
-            throw new EntityNotFoundProblem("sessionNotFound","Session identified by "+sessionId+" not found");
-        } catch (SessionExpiredException e) {
-			throw new RequestTimeoutProblem("sessionExpired", "Session identified by "+sessionId+" is expired");
+			return new ResponseEntity("Session identified by "+sessionId+" not found", HttpStatus.NOT_FOUND);
+		} catch (SessionExpiredException e) {
+			return new ResponseEntity("Session identified by "+sessionId+" is expired", HttpStatus.REQUEST_TIMEOUT);
 		}
 	}
 
@@ -107,8 +106,8 @@ public class PsiController {
         try {
             return ResponseEntity.ok(psiSessionService.getPsiClientSessionDTO(sessionId));
         } catch (SessionNotFoundException e) {
-            throw new EntityNotFoundProblem("sessionNotFound","Session identified by "+sessionId+" not found");
-        }
+			return new ResponseEntity("Session identified by "+sessionId+" not found", HttpStatus.NOT_FOUND);
+		}
 	}
 
 	@Operation(description = "Populate the server dataset depending on the input content, in the shape 'KEY-VALUE'",  responses = {
