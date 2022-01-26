@@ -40,7 +40,6 @@ public class EncryptionService {
         // Depending on the algorithms and keySize supported, populate a list if PsiAlgorithmParameter
         List<PsiAlgorithmParameter> psiAlgorithmParameterList = new LinkedList<>();
         for (Algorithm algorithm : Algorithm.values()) {
-            if(algorithm.equals(Algorithm.DH)) continue; //TODO: remove when implemented
             for (int keySize : algorithm.getSupportedKeySize())
                 psiAlgorithmParameterList.add(
                         new PsiAlgorithmParameter(AlgorithmMapper.toPsiAlgorithm(algorithm), keySize));

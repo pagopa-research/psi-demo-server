@@ -8,6 +8,7 @@ import it.lockless.psidemoserver.mapper.AlgorithmMapper;
 import it.lockless.psidemoserver.model.PsiAlgorithmParameterDTO;
 import it.lockless.psidemoserver.model.PsiClientSessionDTO;
 import it.lockless.psidemoserver.repository.PsiSessionRepository;
+import it.lockless.psidemoserver.util.exception.CustomRuntimeException;
 import it.lockless.psidemoserver.util.exception.KeyNotAvailableException;
 import it.lockless.psidemoserver.util.exception.SessionExpiredException;
 import it.lockless.psidemoserver.util.exception.SessionNotFoundException;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import psi.cache.PsiCacheProvider;
+import psi.model.PsiAlgorithm;
 import psi.model.PsiAlgorithmParameter;
 import psi.model.PsiClientSession;
 import psi.server.*;
@@ -53,6 +55,15 @@ public class PsiSessionService {
         return Instant.now().plus(minutesBeforeSessionExpiration, ChronoUnit.MINUTES);
     }
 
+    // Build ServerKeyDescription
+    private PsiServerKeyDescription buildPsiServerKeyDescription(PsiAlgorithm psiAlgorithm, PsiKey psiKey){
+        if (psiAlgorithm.equals(PsiAlgorithm.BS))
+            return PsiServerKeyDescriptionFactory.createBsServerKeyDescription(psiKey.getPrivateKey(), psiKey.getPublicKey(), psiKey.getModulus());
+        else if (psiAlgorithm.equals(PsiAlgorithm.DH))
+            return PsiServerKeyDescriptionFactory.createDhServerKeyDescription(psiKey.getPrivateKey(), psiKey.getModulus());
+        throw new CustomRuntimeException("The algorithm "+psiAlgorithm+" is not supported");
+    }
+
     public PsiClientSessionDTO initSession(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO) {
         log.info("Calling initSession with psiAlgorithmParameterDTO = {}", psiAlgorithmParameterDTO);
 
@@ -65,8 +76,7 @@ public class PsiSessionService {
                 .orElseThrow(KeyNotAvailableException::new);
 
         // Build ServerKeyDescription
-        PsiServerKeyDescription psiServerKeyDescription =
-                PsiServerKeyDescriptionFactory.createBsServerKeyDescription(psiKey.getPrivateKey(), psiKey.getPublicKey(), psiKey.getModulus());
+        PsiServerKeyDescription psiServerKeyDescription = buildPsiServerKeyDescription(psiAlgorithmParameter.getAlgorithm(), psiKey);
 
         // Init a new server session
         PsiServerSession psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameter, psiServerKeyDescription, psiCacheProvider);
@@ -95,10 +105,10 @@ public class PsiSessionService {
         return PsiServerFactory.loadSession(getPsiServerSession(sessionId), psiCacheProvider);
     }
 
-    private PsiServerSession buildPsiServerSession(Algorithm algorithm, int keySize, String modulus, String privateKey, String publicKey){
+    private PsiServerSession buildPsiServerSession(Algorithm algorithm, int keySize, PsiKey psiKey){
         log.trace("Calling buildPsiServerSession with algorithm = {}, keySize = {}", algorithm, keySize);
         // Build the ServerKeyDescription to be passed into the PsiServerSession
-        PsiServerKeyDescription psiServerKeyDescription = PsiServerKeyDescriptionFactory.createBsServerKeyDescription(privateKey, publicKey, modulus);
+        PsiServerKeyDescription psiServerKeyDescription = buildPsiServerKeyDescription(AlgorithmMapper.toPsiAlgorithm(algorithm), psiKey);
 
         // Build the ServerSession used to load the PsiServer
         return new PsiServerSession(AlgorithmMapper.toPsiAlgorithm(algorithm), keySize, psiCacheProvider != null, psiServerKeyDescription);
@@ -121,7 +131,7 @@ public class PsiSessionService {
                     .orElseThrow(KeyNotAvailableException::new);
 
         // Build the PsiServerSession object
-        return buildPsiServerSession(psiSession.getAlgorithm(), psiSession.getKeySize(), psiKey.getModulus(), psiKey.getPrivateKey(), psiKey.getPublicKey());
+        return buildPsiServerSession(psiSession.getAlgorithm(), psiSession.getKeySize(), psiKey);
     }
 
     // Used to check the status of the session
@@ -138,7 +148,7 @@ public class PsiSessionService {
 
         // Build the PsiServerSession object
         PsiServerSession psiServerSession =
-                buildPsiServerSession(psiSession.getAlgorithm(), psiSession.getKeySize(), psiKey.getModulus(), psiKey.getPrivateKey(), psiKey.getPublicKey());
+                buildPsiServerSession(psiSession.getAlgorithm(), psiSession.getKeySize(), psiKey);
 
 
         PsiClientSessionDTO psiClientSessionDTO = new PsiClientSessionDTO();
