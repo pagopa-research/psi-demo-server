@@ -91,6 +91,12 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- psi-sdk -->
+		<dependency>
+			<groupId>it.lockless</groupId>
+			<artifactId>psi-sdk</artifactId>
+			<version>1.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>
