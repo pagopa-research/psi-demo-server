@@ -8,6 +8,7 @@ import it.lockless.psidemoserver.mapper.AlgorithmMapper;
 import it.lockless.psidemoserver.model.PsiAlgorithmParameterDTO;
 import it.lockless.psidemoserver.model.PsiClientSessionDTO;
 import it.lockless.psidemoserver.repository.PsiSessionRepository;
+import it.lockless.psidemoserver.util.GlobalVariable;
 import it.lockless.psidemoserver.util.exception.CustomRuntimeException;
 import it.lockless.psidemoserver.util.exception.KeyNotAvailableException;
 import it.lockless.psidemoserver.util.exception.SessionExpiredException;
@@ -21,6 +22,7 @@ import psi.cache.PsiCacheProvider;
 import psi.model.PsiAlgorithm;
 import psi.model.PsiAlgorithmParameter;
 import psi.model.PsiClientSession;
+import psi.model.PsiRuntimeConfiguration;
 import psi.server.*;
 
 import java.time.Instant;
@@ -102,7 +104,9 @@ public class PsiSessionService {
 
     PsiServer loadPsiServerBySessionId(long sessionId) throws SessionNotFoundException, SessionExpiredException {
         log.debug("Calling loadPsiServerBySessionId with sessionId = {}", sessionId);
-        return PsiServerFactory.loadSession(getPsiServerSession(sessionId), psiCacheProvider);
+        PsiServer psiServer = PsiServerFactory.loadSession(getPsiServerSession(sessionId), psiCacheProvider);
+        psiServer.setConfiguration(new PsiRuntimeConfiguration(GlobalVariable.DEFAULT_THREADS));
+        return psiServer;
     }
 
     private PsiServerSession buildPsiServerSession(Algorithm algorithm, int keySize, PsiKey psiKey){
