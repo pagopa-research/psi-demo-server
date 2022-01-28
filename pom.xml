@@ -84,11 +84,11 @@
 			<version>4.0.1</version>
 		</dependency>
 
-		<!-- test only -->
+		<!-- slf4j -->
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.33</version>
 		</dependency>
 
 		<!-- psi-sdk -->
@@ -97,6 +97,14 @@
 			<artifactId>psi-sdk</artifactId>
 			<version>1.0</version>
 		</dependency>
+
+		<!-- test only -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
