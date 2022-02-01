@@ -91,6 +91,7 @@ public class SecretConfig {
                     DHPrivateKeySpec dhPrivateKeySpec = keyFactory.getKeySpec(pair.getPrivate(), DHPrivateKeySpec.class);
                     psiKey.setModulus(CustomTypeConverter.convertBigIntegerToString(dhPrivateKeySpec.getP()));
                     psiKey.setPrivateKey(CustomTypeConverter.convertBigIntegerToString(dhPrivateKeySpec.getX()));
+                    break;
                 default:
                     throw new AlgorithmNotSupportedException("The algorithm "+algorithm+" is not supported");
             }
