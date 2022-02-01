@@ -24,6 +24,11 @@
         <appender-ref ref="STDOUT_DEBUG" />
     </logger>
 
+
+    <logger name="psi" level="debug" additivity="false">
+        <appender-ref ref="STDOUT_DEBUG" />
+    </logger>
+
     <root level="DEBUG">
         <appender-ref ref="STDOUT" />
     </root>
