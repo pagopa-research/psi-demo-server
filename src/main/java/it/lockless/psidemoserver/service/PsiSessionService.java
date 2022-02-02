@@ -59,10 +59,15 @@ public class PsiSessionService {
 
     // Build ServerKeyDescription
     private PsiServerKeyDescription buildPsiServerKeyDescription(PsiAlgorithm psiAlgorithm, PsiKey psiKey){
+        log.debug("Calling buildPsiServerKeyDescription with psiAlgorithm = {}, psiKey = {}", psiAlgorithm, psiKey);
         if (psiAlgorithm.equals(PsiAlgorithm.BS))
             return PsiServerKeyDescriptionFactory.createBsServerKeyDescription(psiKey.getPrivateKey(), psiKey.getPublicKey(), psiKey.getModulus());
         else if (psiAlgorithm.equals(PsiAlgorithm.DH))
             return PsiServerKeyDescriptionFactory.createDhServerKeyDescription(psiKey.getPrivateKey(), psiKey.getModulus());
+        else if (psiAlgorithm.equals(PsiAlgorithm.ECBS))
+            return PsiServerKeyDescriptionFactory.createEcBsServerKeyDescription(psiKey.getPrivateKey(), psiKey.getPublicKey(), psiKey.getEcSpecName());
+        else if (psiAlgorithm.equals(PsiAlgorithm.ECDH))
+            return PsiServerKeyDescriptionFactory.createEcDhServerKeyDescription(psiKey.getPrivateKey(), psiKey.getEcSpecName());
         throw new CustomRuntimeException("The algorithm "+psiAlgorithm+" is not supported");
     }
 

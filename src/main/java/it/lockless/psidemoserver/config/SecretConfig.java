@@ -3,11 +3,17 @@ package it.lockless.psidemoserver.config;
 import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 import it.lockless.psidemoserver.util.exception.AlgorithmInvalidKeyException;
 import it.lockless.psidemoserver.util.exception.AlgorithmNotSupportedException;
+import org.bouncycastle.jce.ECNamedCurveTable;
+import org.bouncycastle.jce.interfaces.ECPrivateKey;
+import org.bouncycastle.jce.interfaces.ECPublicKey;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jce.spec.ECParameterSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import psi.utils.Base64EncoderHelper;
+import psi.exception.PsiServerInitException;
+import psi.model.EllipticCurve;
 import psi.utils.CustomTypeConverter;
 
 import javax.crypto.spec.DHPrivateKeySpec;
@@ -15,10 +21,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
@@ -48,7 +51,11 @@ public class SecretConfig {
                         .filter(k -> (k.getAlgorithm().equals(algorithm) && k.getKeySize().equals(keySize)))
                         .findAny().orElse(null);
                 if (psiKey == null)
-                    psiKeySet.add(generateKey(algorithm, keySize));
+                    if (algorithm.equals(Algorithm.DH) || algorithm.equals(Algorithm.BS))
+                        psiKeySet.add(generateKey(algorithm, keySize));
+                    else
+                        psiKeySet.add(generateEcKey(algorithm, keySize));
+
             }
         }
 
@@ -107,6 +114,35 @@ public class SecretConfig {
         return psiKey;
     }
 
+
+    public static PsiKey generateEcKey(Algorithm algorithm, int keySize) {
+        log.info("Calling generateKey with algorithm = {}, keySize = {}", algorithm, keySize);
+        PsiKey psiKey = new PsiKey();
+        ECParameterSpec ecSpec;
+        Security.addProvider(new BouncyCastleProvider());
+
+        KeyPairGenerator keyGenerator;
+        try {
+            keyGenerator = KeyPairGenerator.getInstance("EC", "BC");
+            ecSpec = ECNamedCurveTable.getParameterSpec(EllipticCurve.getNameCurve(keySize));
+            keyGenerator.initialize(ecSpec, new SecureRandom());
+        } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchProviderException e) {
+            throw new PsiServerInitException(algorithm + " key generator not available");
+        }
+        KeyPair pair = keyGenerator.genKeyPair();
+
+        psiKey.setPrivateKey(CustomTypeConverter.convertBigIntegerToString(((ECPrivateKey)pair.getPrivate()).getD()));
+        psiKey.setPublicKey(CustomTypeConverter.convertECPointToString(((ECPublicKey)pair.getPublic()).getQ()));
+        psiKey.setEcSpecName(EllipticCurve.getNameCurve(keySize));
+
+        psiKey.setKeyId((long)(Math.random() * (Long.MAX_VALUE)));
+
+        psiKey.setAlgorithm(algorithm);
+        psiKey.setKeySize(keySize);
+
+        return psiKey;
+    }
+
     private Set<PsiKey> loadKeySetFromFile(){
         log.info("Calling loadKeySetFromFile");
         Set<PsiKey> psiKeySet = new HashSet<>();
@@ -115,7 +151,7 @@ public class SecretConfig {
         if(keyStoreFile.exists()) {
             try {
                 try (Stream<String> stream = Files.lines(keyStoreFile.toPath())) {
-                    stream.forEach(x -> psiKeySet.add(Base64EncoderHelper.base64ToObject(x, PsiKey.class)));
+                    stream.forEach(x -> psiKeySet.add(CustomTypeConverter.convertStringToObject(x, PsiKey.class)));
                 }
             } catch (IOException e) {
                 log.error("Unable to open file "+KEY_STORE_FILENAME);
@@ -133,7 +169,7 @@ public class SecretConfig {
                 keyStoreFile.createNewFile();
             FileWriter fileWriter = new FileWriter(keyStoreFile, false);
             for (PsiKey psiKey : psiKeySet)
-                fileWriter.write(Base64EncoderHelper.objectToBase64(psiKey)+"\n");
+                fileWriter.write(CustomTypeConverter.convertObjectToString(psiKey)+"\n");
             fileWriter.close();
             return true;
         } catch (IOException e) {

@@ -19,6 +19,10 @@ public class AlgorithmMapper {
                 return PsiAlgorithm.DH;
             case BS:
                 return PsiAlgorithm.BS;
+            case ECDH:
+                return PsiAlgorithm.ECDH;
+            case ECBS:
+                return PsiAlgorithm.ECBS;
             default:
                 throw new CustomRuntimeException("Algorithm not supported");
         }
@@ -31,6 +35,10 @@ public class AlgorithmMapper {
                 return Algorithm.DH;
             case BS:
                 return Algorithm.BS;
+            case ECDH:
+                return Algorithm.ECDH;
+            case ECBS:
+                return Algorithm.ECBS;
             default:
                 throw new CustomRuntimeException("Algorithm not supported");
         }

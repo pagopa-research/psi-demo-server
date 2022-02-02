@@ -6,7 +6,9 @@ import java.util.List;
 
 public enum Algorithm {
     DH(2048,4096),
-    BS(2048,4096);
+    BS(2048,4096),
+    ECBS(256,512),
+    ECDH(256,512);
 
     private final List<Integer> supportedKeySize;
 

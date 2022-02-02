@@ -18,7 +18,6 @@ public class PsiKey implements Serializable {
     @NotNull
     private Integer keySize;
 
-    @NotNull
     private String modulus;
 
     @NotNull
@@ -26,6 +25,8 @@ public class PsiKey implements Serializable {
 
     @NotNull
     private String publicKey;
+
+    private String ecSpecName;
 
     public Algorithm getAlgorithm() {
         return algorithm;
@@ -75,6 +76,24 @@ public class PsiKey implements Serializable {
         this.privateKey = privateKey;
     }
 
+    public String getEcSpecName() {
+        return ecSpecName;
+    }
 
+    public void setEcSpecName(String ecSpecName) {
+        this.ecSpecName = ecSpecName;
+    }
 
+    @Override
+    public String toString() {
+        return "PsiKey{" +
+                "keyId=" + keyId +
+                ", algorithm=" + algorithm +
+                ", keySize=" + keySize +
+                ", modulus='" + modulus + '\'' +
+                ", privateKey='" + privateKey + '\'' +
+                ", publicKey='" + publicKey + '\'' +
+                ", ecSpecName='" + ecSpecName + '\'' +
+                '}';
+    }
 }

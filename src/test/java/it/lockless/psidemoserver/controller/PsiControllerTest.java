@@ -57,7 +57,7 @@ class PsiControllerTest {
 		assertNotNull(psiAlgorithmParameterListDTO);
 		List<PsiAlgorithmParameter> sessionParameterList = psiAlgorithmParameterListDTO.getContent();
 		assertNotNull(sessionParameterList);
-		assertEquals(4, sessionParameterList.size());
+		assertEquals(8, sessionParameterList.size());
 		sessionParameterList.forEach(dto -> assertTrue(Arrays.asList(PsiAlgorithm.values()).contains(dto.getAlgorithm())));
 
 		for(PsiAlgorithmParameter psiAlgorithmParameter : sessionParameterList) {
