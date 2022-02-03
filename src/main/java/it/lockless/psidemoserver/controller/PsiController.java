@@ -3,6 +3,7 @@ package it.lockless.psidemoserver.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import it.lockless.psidemoserver.model.*;
+import it.lockless.psidemoserver.service.BloomFilterService;
 import it.lockless.psidemoserver.service.DatasetService;
 import it.lockless.psidemoserver.service.EncryptionService;
 import it.lockless.psidemoserver.service.PsiSessionService;
@@ -85,7 +86,7 @@ public class PsiController {
 			@PathVariable("sessionId") Long sessionId,
 			@RequestParam(value="page", defaultValue = "0") Integer page,
 			@RequestParam(value="size", defaultValue = "1000") Integer size) {
-		log.debug("Calling PsiServerDatasetPageDTO with sessionId = {}, page = {}, size = {}", sessionId, page, size);
+		log.debug("Called PsiServerDatasetPageDTO with sessionId = {}, page = {}, size = {}", sessionId, page, size);
         try {
             return ResponseEntity.ok(encryptionService.getEncryptedServerDataset(sessionId, page, size));
         } catch (SessionNotFoundException e) {
@@ -102,7 +103,7 @@ public class PsiController {
 	@GetMapping(value = "/{sessionId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PsiClientSessionDTO> getSession(
 			@PathVariable("sessionId") Long sessionId) {
-		log.debug("Calling getSession with sessionId = {}", sessionId);
+		log.debug("Called getSession with sessionId = {}", sessionId);
         try {
             return ResponseEntity.ok(psiSessionService.getPsiClientSessionDTO(sessionId));
         } catch (SessionNotFoundException e) {
@@ -116,8 +117,8 @@ public class PsiController {
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@PostMapping(value = "/dataset", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PsiDatasetMapDTO> initServerDataset(@RequestBody Map<String, Integer> datasetStructure) {
-		log.debug("Calling initServerDataset with intiServerDataset = {}", datasetStructure);
-		datasetService.intiServerDataset(datasetStructure);
+		log.debug("Called initServerDataset with datasetStructure = {}", datasetStructure);
+		datasetService.initServerDataset(datasetStructure);
 		return ResponseEntity.ok().build();
 	}
 }

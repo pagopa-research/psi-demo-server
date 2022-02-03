@@ -17,6 +17,8 @@ public class PsiClientSessionDTO {
     @NotNull
     private PsiClientSession psiClientSession;
 
+    private BloomFilterDTO bloomFilterDTO;
+
     public Long getSessionId() {
         return sessionId;
     }
@@ -41,19 +43,25 @@ public class PsiClientSessionDTO {
         this.psiClientSession = psiClientSession;
     }
 
+    public BloomFilterDTO getBloomFilterDTO() {
+        return bloomFilterDTO;
+    }
+
+    public void setBloomFilterDTO(BloomFilterDTO bloomFilterDTO) {
+        this.bloomFilterDTO = bloomFilterDTO;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PsiClientSessionDTO that = (PsiClientSessionDTO) o;
-        return Objects.equals(sessionId, that.sessionId) &&
-                Objects.equals(expiration, that.expiration) &&
-                Objects.equals(psiClientSession, that.psiClientSession);
+        return Objects.equals(sessionId, that.sessionId) && Objects.equals(expiration, that.expiration) && Objects.equals(psiClientSession, that.psiClientSession) && Objects.equals(bloomFilterDTO, that.bloomFilterDTO);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(sessionId, expiration, psiClientSession);
+        return Objects.hash(sessionId, expiration, psiClientSession, bloomFilterDTO);
     }
 
     @Override
@@ -61,7 +69,8 @@ public class PsiClientSessionDTO {
         return "PsiClientSessionDTO{" +
                 "sessionId=" + sessionId +
                 ", expiration=" + expiration +
-                ", psiSessionDTO=" + psiClientSession +
+                ", psiClientSession=" + psiClientSession +
+                ", bloomFilterDTO=" + bloomFilterDTO +
                 '}';
     }
 }

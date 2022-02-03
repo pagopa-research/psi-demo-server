@@ -4,6 +4,7 @@ import it.lockless.psidemoserver.entity.PsiElement;
 import it.lockless.psidemoserver.repository.PsiElementRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -13,16 +14,21 @@ public class DatasetService {
 
     private static final Logger log = LoggerFactory.getLogger(DatasetService.class);
 
-
     private final PsiElementRepository psiElementRepository;
 
-    public DatasetService(PsiElementRepository psiElementRepository) {
+    private final BloomFilterService bloomFilterService;
+
+    @Value("${bloomfilter.enabled}")
+    private boolean bloomFilterEnabled;
+
+    public DatasetService(PsiElementRepository psiElementRepository, BloomFilterService bloomFilterService) {
         this.psiElementRepository = psiElementRepository;
+        this.bloomFilterService = bloomFilterService;
     }
 
-    public void intiServerDataset(Map<String, Integer> datasetStructure){
-        log.debug("Calling intiServerDataset with datasetStructure = {}", datasetStructure);
-
+    public void initServerDataset(Map<String, Integer> datasetStructure){
+        log.debug("Calling initServerDataset with datasetStructure = {}", datasetStructure);
+        psiElementRepository.deleteAll();
         for(Map.Entry<String, Integer> entry : datasetStructure.entrySet()){
             for (int i = 0; i < entry.getValue(); i++) {
                 PsiElement psiElement = new PsiElement();
@@ -30,5 +36,9 @@ public class DatasetService {
                 psiElementRepository.save(psiElement);
             }
         }
+
+        // If enabled, we also update the Bloom Filter after setting the server dataset
+        if(bloomFilterEnabled)
+            bloomFilterService.computeAndSaveSerializedBloomFilter();
     }
 }
