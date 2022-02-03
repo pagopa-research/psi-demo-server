@@ -34,7 +34,7 @@ class DatasetServiceTest {
 		map.put("TWO", 20);
 		map.put("THREE", 30);
 
-		datasetService.intiServerDataset(map);
+		datasetService.initServerDataset(map);
 
 		assertEquals(60, psiElementRepository.count());
 	}

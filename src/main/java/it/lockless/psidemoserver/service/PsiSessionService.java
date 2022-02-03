@@ -3,8 +3,10 @@ package it.lockless.psidemoserver.service;
 import it.lockless.psidemoserver.config.PsiKey;
 import it.lockless.psidemoserver.config.StoredAlgorithmKey;
 import it.lockless.psidemoserver.entity.PsiSession;
+import it.lockless.psidemoserver.entity.SerializedBloomFilter;
 import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 import it.lockless.psidemoserver.mapper.AlgorithmMapper;
+import it.lockless.psidemoserver.model.BloomFilterDTO;
 import it.lockless.psidemoserver.model.PsiAlgorithmParameterDTO;
 import it.lockless.psidemoserver.model.PsiClientSessionDTO;
 import it.lockless.psidemoserver.repository.PsiSessionRepository;
@@ -27,6 +29,7 @@ import psi.server.*;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 @Service
 public class PsiSessionService {
@@ -36,20 +39,26 @@ public class PsiSessionService {
     @Value("${session.expiration.minutes}")
     private int minutesBeforeSessionExpiration;
 
+    @Value("${bloomfilter.enabled}")
+    private boolean bloomFilterEnabled;
+
     private final PsiSessionRepository psiSessionRepository;
 
     private final StoredAlgorithmKey storedAlgorithmKey;
 
     private PsiCacheProvider psiCacheProvider;
 
+    private final BloomFilterService bloomFilterService;
+
     @Autowired(required = false)
     private void setPsiCacheProvider(PsiCacheProvider psiCacheProvider){
         this.psiCacheProvider = psiCacheProvider;
     }
 
-    public PsiSessionService(PsiSessionRepository psiSessionRepository, StoredAlgorithmKey storedAlgorithmKey) {
+    public PsiSessionService(PsiSessionRepository psiSessionRepository, StoredAlgorithmKey storedAlgorithmKey, BloomFilterService bloomFilterService) {
         this.psiSessionRepository = psiSessionRepository;
         this.storedAlgorithmKey = storedAlgorithmKey;
+        this.bloomFilterService = bloomFilterService;
     }
 
     private Instant getExpirationTime(){
@@ -98,6 +107,12 @@ public class PsiSessionService {
         psiClientSessionDTO.setExpiration(psiSession.getExpiration());
         psiClientSessionDTO.setSessionId(psiSession.getSessionId());
         psiClientSessionDTO.setPsiClientSession(PsiClientSession.getFromServerSession(psiServerSession));
+
+        // If bloom filter is enabled, get the last generated bloom filter (if available) and set it
+        if(bloomFilterEnabled){
+            Optional<SerializedBloomFilter> serializedBloomFilterOptional = bloomFilterService.getLastSerializedBloomFilter();
+            serializedBloomFilterOptional.ifPresent(serializedBloomFilter -> psiClientSessionDTO.setBloomFilterDTO(new BloomFilterDTO(serializedBloomFilter)));
+        }
 
         return psiClientSessionDTO;
     }
@@ -154,12 +169,16 @@ public class PsiSessionService {
         PsiServerSession psiServerSession =
                 buildPsiServerSession(psiSession.getAlgorithm(), psiSession.getKeySize(), psiKey);
 
-
         PsiClientSessionDTO psiClientSessionDTO = new PsiClientSessionDTO();
         psiClientSessionDTO.setExpiration(psiSession.getExpiration());
         psiClientSessionDTO.setSessionId(psiSession.getId());
         psiClientSessionDTO.setPsiClientSession(PsiClientSession.getFromServerSession(psiServerSession));
 
+        // If bloom filter is enabled, get the last generated bloom filter (if available) and set it
+        if(bloomFilterEnabled){
+            Optional<SerializedBloomFilter> serializedBloomFilterOptional = bloomFilterService.getLastSerializedBloomFilter();
+            serializedBloomFilterOptional.ifPresent(serializedBloomFilter -> psiClientSessionDTO.setBloomFilterDTO(new BloomFilterDTO(serializedBloomFilter)));
+        }
         return psiClientSessionDTO;
     }
 

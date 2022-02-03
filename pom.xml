@@ -84,6 +84,13 @@
 			<version>4.0.1</version>
 		</dependency>
 
+		<!-- guava for bloom-filter -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>31.0.1-jre</version>
+		</dependency>
+
 		<!-- psi-sdk -->
 		<dependency>
 			<groupId>it.lockless</groupId>
