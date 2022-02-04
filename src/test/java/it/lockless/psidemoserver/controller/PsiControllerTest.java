@@ -3,20 +3,32 @@ package it.lockless.psidemoserver.controller;
 import it.lockless.psidemoserver.entity.PsiElement;
 import it.lockless.psidemoserver.model.*;
 import it.lockless.psidemoserver.repository.PsiElementRepository;
-import it.lockless.psidemoserver.service.cache.RedisPsiCacheProvider;
+import it.lockless.psidemoserver.service.EncryptionService;
+import it.lockless.psidemoserver.service.PsiSessionService;
+import it.lockless.psidemoserver.util.exception.SessionExpiredException;
+import it.lockless.psidemoserver.util.exception.SessionNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.util.ReflectionTestUtils;
+import psi.cache.PsiCacheProvider;
 import psi.client.PsiClient;
 import psi.client.PsiClientFactory;
+import psi.client.PsiClientKeyDescription;
 import psi.model.PsiAlgorithm;
 import psi.model.PsiAlgorithmParameter;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
@@ -28,14 +40,53 @@ class PsiControllerTest {
 	@Autowired
 	private PsiController controller;
 
-	@Autowired(required = false)
-	private RedisPsiCacheProvider cacheImplementation;
+	@Autowired
+	private PsiSessionService psiSessionService;
+
+	@Autowired
+	private EncryptionService encryptionService;
+
+	@Mock
+	private PsiCacheProvider psiCacheProvider;
+
+	private PsiCacheProvider clientPsiCacheProvider = new LocalCacheImplementation();
+
+	private ConcurrentHashMap<String, String> cacheMock;// = new ConcurrentHashMap<>();
+
+	private AtomicInteger cachePut;// = new AtomicInteger(0);
+	private AtomicInteger cacheHit;// = new AtomicInteger(0);
+	private AtomicInteger cacheMiss;// = new AtomicInteger(0);
 
 	@BeforeEach
 	void setup() {
-		int matchingElements = 10;
-		int mismatchingElements = 20;
-		List<PsiElement> psiElementList = new ArrayList<>(matchingElements+mismatchingElements);
+		when(psiCacheProvider.get(any())).thenAnswer(invocation -> {
+			String key = (String) invocation.getArguments()[0];
+			String ret = cacheMock.get(key);
+			if (ret == null){
+				cacheMiss.incrementAndGet();
+				return Optional.empty();
+			}
+			cacheHit.incrementAndGet();
+			return Optional.of(ret);
+		});
+
+		doAnswer(invocation -> {
+			String key = invocation.getArgument(0);
+			String value = invocation.getArgument(1);
+			cachePut.incrementAndGet();
+			cacheMock.put(key,value);
+			return null;
+		}).when(psiCacheProvider).put(any(), any());
+
+		ReflectionTestUtils.setField(psiSessionService, "psiCacheProvider",psiCacheProvider);
+		ReflectionTestUtils.setField(encryptionService, "psiSessionService",psiSessionService);
+		ReflectionTestUtils.setField(controller, "encryptionService",encryptionService);
+		ReflectionTestUtils.setField(controller, "psiSessionService",psiSessionService);
+	}
+
+	private void setupServerDataset(int totalElements, int matchingElements){
+		int mismatchingElements = totalElements - matchingElements;
+		List<PsiElement> psiElementList = new ArrayList<>(totalElements);
 		PsiElement psiElement;
 		for(int i = 0; i< matchingElements; i++) {
 			psiElement = new PsiElement();
@@ -50,8 +101,25 @@ class PsiControllerTest {
 		psiElementRepository.saveAll(psiElementList);
 	}
 
+	private Set<String> setupClientDataset(int totalElements, int matchingElements){
+		int mismatchingElements = totalElements - matchingElements;
+		Set<String> clientDataset = new HashSet<>(totalElements);
+		for (int i = 0; i < matchingElements; i++)
+			clientDataset.add("MATCHING-" + i);
+		for (int i = 0; i < mismatchingElements; i++)
+			clientDataset.add("CLIENT-" + i);
+		return clientDataset;
+	}
+
 	@Test
-	void fullExecutionTest() {
+	void fullExecutionTest() throws SessionExpiredException, SessionNotFoundException {
+		int serverTotalElements = 30;
+		int clientTotalElements = 20;
+		int matchingElements = 10;
+		// Building server and client dataset
+		setupServerDataset(serverTotalElements, matchingElements);
+		Set<String> clientDataset = setupClientDataset(clientTotalElements, matchingElements);
+
 		// Retrieve the list of available algorithms and relative keySize
 		PsiAlgorithmParameterListDTO psiAlgorithmParameterListDTO = controller.getParameters().getBody();
 		assertNotNull(psiAlgorithmParameterListDTO);
@@ -61,6 +129,7 @@ class PsiControllerTest {
 		sessionParameterList.forEach(dto -> assertTrue(Arrays.asList(PsiAlgorithm.values()).contains(dto.getAlgorithm())));
 
 		for(PsiAlgorithmParameter psiAlgorithmParameter : sessionParameterList) {
+			PsiClientKeyDescription psiClientKeyDescription = null;
 
 			// Initialize a new Session
 			PsiClientSessionDTO psiClientSessionDTO = controller.initSession(new PsiAlgorithmParameterDTO(psiAlgorithmParameter)).getBody();
@@ -70,45 +139,88 @@ class PsiControllerTest {
 			assertEquals(psiAlgorithmParameter, psiClientSessionDTO.getPsiClientSession().getPsiAlgorithmParameter());
 			Long sessionId = psiClientSessionDTO.getSessionId();
 
-			// CLIENT SIDE: Setup client
-			PsiClient psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession());
+			// Reset cache content
+			cacheMock = new ConcurrentHashMap<>();
 
-			// CLIENT SIDE: Building and encrypting client dataset
-			Set<String> clientDataset = new HashSet<>(1500);
-			for (int i = 0; i < 10; i++) clientDataset.add("MATCHING-" + i);
-			for (int i = 10; i < 15; i++) clientDataset.add("CLIENT-" + i);
+			for (int i = 0 ; i < 2 ;  i++) {
+				// Reset cache control variable
+				cacheHit = new AtomicInteger(0);
+				cacheMiss = new AtomicInteger(0);
+				cachePut = new AtomicInteger(0);
 
-			Map<Long, String> encryptedClientDataset = psiClient.loadAndEncryptClientDataset(clientDataset);
-			PsiDatasetMapDTO psiDatasetMapDTO = new PsiDatasetMapDTO(encryptedClientDataset);
+				// CLIENT SIDE: Setup client
+				PsiClient psiClient;
+				if (psiClientKeyDescription == null) {
+					psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), clientPsiCacheProvider);
+					psiClientKeyDescription = psiClient.getClientKeyDescription();
+				} else {
+					// During the second loop we use the same key
+					psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), psiClientKeyDescription, clientPsiCacheProvider);
+				}
 
-			// Double encrypt client dataset
-			PsiDatasetMapDTO returnedPsiDatasetMapDTO = controller.encryptClientDataset(sessionId, psiDatasetMapDTO).getBody();
-			assertNotNull(returnedPsiDatasetMapDTO);
-			assertEquals(clientDataset.size(), returnedPsiDatasetMapDTO.getContent().size());
+				// CLIENT SIDE: encrypting client dataset
+				Map<Long, String> encryptedClientDataset = psiClient.loadAndEncryptClientDataset(clientDataset);
+				PsiDatasetMapDTO psiDatasetMapDTO = new PsiDatasetMapDTO(encryptedClientDataset);
 
-			// Encrypt server dataset in two different pages
-			PsiServerDatasetPageDTO page = controller.getEncryptedServerServerDataset(sessionId, 0, 20).getBody();
-			assertNotNull(page);
-			assertEquals(30, page.getTotalEntries());
-			assertEquals(2, page.getTotalPages());
-			assertEquals(20, page.getEntries());
-			assertEquals(20, page.getSize());
-			Set<String> encryptedServerDataset = new HashSet<>(page.getContent());
-			page = controller.getEncryptedServerServerDataset(sessionId, 1, 20).getBody();
-			assertNotNull(page);
-			assertEquals(10, page.getEntries());
-			assertEquals(20, page.getSize());
-			encryptedServerDataset.addAll(page.getContent());
-			assertEquals(30, encryptedServerDataset.size());
+				// Double encrypt client dataset
+				PsiDatasetMapDTO returnedPsiDatasetMapDTO = controller.encryptClientDataset(sessionId, psiDatasetMapDTO).getBody();
+				assertNotNull(returnedPsiDatasetMapDTO);
+				assertEquals(clientDataset.size(), returnedPsiDatasetMapDTO.getContent().size());
 
-			// CLIENT SIDE: load server encrypted datasets
-			psiClient.loadAndProcessServerDataset(encryptedServerDataset);
-			psiClient.loadDoubleEncryptedClientDataset(returnedPsiDatasetMapDTO.getContent());
+				// Encrypt server dataset in two different pages
+				PsiServerDatasetPageDTO page = controller.getEncryptedServerServerDataset(sessionId, 0, 20).getBody();
+				assertNotNull(page);
+				assertEquals(serverTotalElements, page.getTotalEntries());
+				assertEquals(2, page.getTotalPages());
+				assertEquals(20, page.getEntries());
+				assertEquals(20, page.getSize());
 
-			// CLIENT SIDE: compute psi
-			Set<String> psiSet = psiClient.computePsi();
-			assertEquals(10, psiSet.size());
-			psiSet.forEach(elem -> assertTrue(elem.startsWith("MATCHING-")));
+				Set<String> encryptedServerDataset = new HashSet<>(page.getContent());
+				page = controller.getEncryptedServerServerDataset(sessionId, 1, 20).getBody();
+				assertNotNull(page);
+				assertEquals(10, page.getEntries());
+				assertEquals(20, page.getSize());
+				encryptedServerDataset.addAll(page.getContent());
+				assertEquals(30, encryptedServerDataset.size());
+
+				if (i == 0){
+					assertEquals(2, cacheHit.get()); // related to the two keyDescription retrieving during the initSession, after the first one
+					assertEquals(serverTotalElements+clientTotalElements + 1, cacheMiss.get()); // first keyStoring + server dataset + client dataset
+					assertEquals(serverTotalElements+clientTotalElements + 1, cachePut.get()); // first keyStoring + server dataset + client dataset
+				} else {
+					assertEquals(serverTotalElements+clientTotalElements + 3, cacheHit.get()); // 3 keyStoring + server dataset + client dataset
+					assertEquals(0, cacheMiss.get());
+					assertEquals(0, cachePut.get());
+				}
+
+				// CLIENT SIDE: load server encrypted datasets
+				psiClient.loadAndProcessServerDataset(encryptedServerDataset);
+				psiClient.loadDoubleEncryptedClientDataset(returnedPsiDatasetMapDTO.getContent());
+
+				// CLIENT SIDE: compute psi
+				Set<String> psiSet = psiClient.computePsi();
+				assertEquals(matchingElements, psiSet.size());
+				psiSet.forEach(elem -> assertTrue(elem.startsWith("MATCHING-")));
+			}
+
+		}
+	}
+
+	private static class LocalCacheImplementation implements PsiCacheProvider {
+
+		private ConcurrentHashMap<String, String> cache = new ConcurrentHashMap<>();
+
+		@Override
+		public Optional<String> get(String key) {
+			String value = cache.get(key);
+			if (value == null)
+				return Optional.empty();
+			return Optional.of(value);
+		}
+
+		@Override
+		public void put(String key, String value) {
+			cache.put(key, value);
 		}
 	}
 }

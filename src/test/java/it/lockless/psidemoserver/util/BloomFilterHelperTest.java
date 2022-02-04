@@ -14,13 +14,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 @SuppressWarnings("UnstableApiUsage")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-public class BloomFilterHelperTest {
+class BloomFilterHelperTest {
 
-    Set<String> filterDataSet;
-    Set<String> comparisonDataSet;
+    private Set<String> filterDataSet;
+    private Set<String> comparisonDataSet;
 
     @BeforeEach
-    public void init(){
+    void init(){
         this.filterDataSet = new HashSet<>();
         this.comparisonDataSet = new HashSet<>();
         for(int i = 0; i < 100; i++){
@@ -36,14 +36,14 @@ public class BloomFilterHelperTest {
     }
 
     @Test
-    public void bloomFilterBasicTest(){
+    void bloomFilterBasicTest(){
         BloomFilter<CharSequence> bloomFilter = BloomFilterHelper.createBloomFilterByteArrayFromSet(filterDataSet, 0.01);
         Set<String> filteredSet = BloomFilterHelper.filterSet(comparisonDataSet, bloomFilter);
         assertTrue(filteredSet.size() > 50);
     }
 
     @Test
-    public void serializeDeserializeTest(){
+    void serializeDeserializeTest(){
         BloomFilter<CharSequence> bloomFilter = BloomFilterHelper.createBloomFilterByteArrayFromSet(filterDataSet, 0.01);
         byte[] serializedBloomFilter = BloomFilterHelper.convertBloomFilterToByteArray(bloomFilter);
         BloomFilter<CharSequence> deserializedBloomFilter = BloomFilterHelper.getBloomFilterFromByteArray(serializedBloomFilter);

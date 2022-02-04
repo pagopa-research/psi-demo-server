@@ -15,14 +15,14 @@ public class BloomFilterCron {
     @Value("${bloomfilter.enabled}")
     private boolean bloomFilterEnabled;
 
-    final BloomFilterService bloomFilterService;
+    private final BloomFilterService bloomFilterService;
 
     public BloomFilterCron(BloomFilterService bloomFilterService) {
         this.bloomFilterService = bloomFilterService;
     }
 
     // Called each 5 minutes to update the Bloom Filter
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(fixedRateString = "${bloomfilter.interval.mseconds:300000}", initialDelayString = "${bloomfilter.interval.mseconds:300000}")
     public void updateBloomFilter(){
         if(bloomFilterEnabled) {
             log.debug("Called updateBloomFilter()");
