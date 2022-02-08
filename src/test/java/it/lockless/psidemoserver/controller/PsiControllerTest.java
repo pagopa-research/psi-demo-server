@@ -14,10 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.util.ReflectionTestUtils;
+import psi.PsiClientFactory;
 import psi.cache.PsiCacheProvider;
 import psi.client.PsiClient;
-import psi.client.PsiClientFactory;
 import psi.client.PsiClientKeyDescription;
+import psi.exception.UnsupportedKeySizeException;
 import psi.model.PsiAlgorithm;
 import psi.model.PsiAlgorithmParameter;
 
@@ -112,7 +113,7 @@ class PsiControllerTest {
 	}
 
 	@Test
-	void fullExecutionTest() throws SessionExpiredException, SessionNotFoundException {
+	void fullExecutionTest() throws SessionExpiredException, SessionNotFoundException, UnsupportedKeySizeException {
 		int serverTotalElements = 30;
 		int clientTotalElements = 20;
 		int matchingElements = 10;

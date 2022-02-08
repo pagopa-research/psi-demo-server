@@ -1,18 +1,14 @@
 package it.lockless.psidemoserver.service;
 
 import it.lockless.psidemoserver.config.PsiKey;
-import it.lockless.psidemoserver.config.StoredAlgorithmKey;
 import it.lockless.psidemoserver.entity.PsiSession;
 import it.lockless.psidemoserver.entity.SerializedBloomFilter;
-import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 import it.lockless.psidemoserver.mapper.AlgorithmMapper;
 import it.lockless.psidemoserver.model.BloomFilterDTO;
 import it.lockless.psidemoserver.model.PsiAlgorithmParameterDTO;
 import it.lockless.psidemoserver.model.PsiClientSessionDTO;
 import it.lockless.psidemoserver.repository.PsiSessionRepository;
 import it.lockless.psidemoserver.util.GlobalVariable;
-import it.lockless.psidemoserver.util.exception.CustomRuntimeException;
-import it.lockless.psidemoserver.util.exception.KeyNotAvailableException;
 import it.lockless.psidemoserver.util.exception.SessionExpiredException;
 import it.lockless.psidemoserver.util.exception.SessionNotFoundException;
 import org.slf4j.Logger;
@@ -20,13 +16,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import psi.PsiServerFactory;
+import psi.PsiServerSession;
 import psi.cache.PsiCacheProvider;
 import psi.exception.UnsupportedKeySizeException;
-import psi.model.PsiAlgorithm;
 import psi.model.PsiAlgorithmParameter;
 import psi.model.PsiClientSession;
 import psi.model.PsiRuntimeConfiguration;
-import psi.server.*;
+import psi.server.PsiServer;
+import psi.server.PsiServerKeyDescription;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -45,7 +43,7 @@ public class PsiSessionService {
 
     private final PsiSessionRepository psiSessionRepository;
 
-    private final StoredAlgorithmKey storedAlgorithmKey;
+    private final PsiKeyService psiKeyService; //private final StoredAlgorithmKey storedAlgorithmKey;
 
     private PsiCacheProvider psiCacheProvider;
 
@@ -56,9 +54,9 @@ public class PsiSessionService {
         this.psiCacheProvider = psiCacheProvider;
     }
 
-    public PsiSessionService(PsiSessionRepository psiSessionRepository, StoredAlgorithmKey storedAlgorithmKey, BloomFilterService bloomFilterService) {
+    public PsiSessionService(PsiSessionRepository psiSessionRepository, PsiKeyService psiKeyService, BloomFilterService bloomFilterService) {
         this.psiSessionRepository = psiSessionRepository;
-        this.storedAlgorithmKey = storedAlgorithmKey;
+        this.psiKeyService = psiKeyService;
         this.bloomFilterService = bloomFilterService;
     }
 
@@ -67,45 +65,32 @@ public class PsiSessionService {
         return Instant.now().plus(minutesBeforeSessionExpiration, ChronoUnit.MINUTES);
     }
 
-    // Build ServerKeyDescription
-    private PsiServerKeyDescription buildPsiServerKeyDescription(PsiAlgorithm psiAlgorithm, PsiKey psiKey){
-        log.debug("Calling buildPsiServerKeyDescription with psiAlgorithm = {}, psiKey = {}", psiAlgorithm, psiKey);
-        if (psiAlgorithm.equals(PsiAlgorithm.BS))
-            return PsiServerKeyDescriptionFactory.createBsServerKeyDescription(psiKey.getPrivateKey(), psiKey.getPublicKey(), psiKey.getModulus());
-        else if (psiAlgorithm.equals(PsiAlgorithm.DH))
-            return PsiServerKeyDescriptionFactory.createDhServerKeyDescription(psiKey.getPrivateKey(), psiKey.getModulus());
-        else if (psiAlgorithm.equals(PsiAlgorithm.ECBS))
-            return PsiServerKeyDescriptionFactory.createEcBsServerKeyDescription(psiKey.getPrivateKey(), psiKey.getPublicKey(), psiKey.getEcSpecName());
-        else if (psiAlgorithm.equals(PsiAlgorithm.ECDH))
-            return PsiServerKeyDescriptionFactory.createEcDhServerKeyDescription(psiKey.getPrivateKey(), psiKey.getEcSpecName());
-        throw new CustomRuntimeException("The algorithm "+psiAlgorithm+" is not supported");
-    }
-
     public PsiClientSessionDTO initSession(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO) throws UnsupportedKeySizeException {
         log.info("Calling initSession with psiAlgorithmParameterDTO = {}", psiAlgorithmParameterDTO);
 
         PsiAlgorithmParameter psiAlgorithmParameter = psiAlgorithmParameterDTO.getContent();
 
         // Retrieve the key corresponding to the pair <algorithm, keySIze>
-        Optional<PsiKey> psiKeyOptional = storedAlgorithmKey.findByAlgorithmAndKeySize(
-                AlgorithmMapper.toEntity(psiAlgorithmParameter.getAlgorithm()),
-                psiAlgorithmParameter.getKeySize());
+        Optional<PsiKey> psiKeyOptional = psiKeyService.findByPsiAlgorithmParameter(psiAlgorithmParameter);
 
-        if(!psiKeyOptional.isPresent())
-            throw new UnsupportedKeySizeException(psiAlgorithmParameter.getAlgorithm(), psiAlgorithmParameter.getKeySize());
-
-        // Build ServerKeyDescription
-        PsiServerKeyDescription psiServerKeyDescription = buildPsiServerKeyDescription(psiAlgorithmParameter.getAlgorithm(), psiKeyOptional.get());
-
-        // Init a new server session
-        PsiServerSession psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameter, psiServerKeyDescription, psiCacheProvider);
+        PsiServerSession psiServerSession;
+        Long psiKeyId = psiKeyOptional.map(PsiKey::getKeyId).orElse(null);
+        // If a key is available it is used in the new server session
+        if(psiKeyOptional.isPresent()){
+            // Build ServerKeyDescription with the stored key
+            PsiServerKeyDescription psiServerKeyDescription = psiKeyService.buildPsiServerKeyDescription(psiKeyOptional.get());
+            psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameter, psiServerKeyDescription, psiCacheProvider);
+        } else {
+            psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameter, psiCacheProvider);
+            psiKeyId = psiKeyService.storePsiServerKeyDescription(psiAlgorithmParameter, psiServerSession.getPsiServerKeyDescription());
+        }
 
         // Storing the session into the DB
         PsiSession psiSession = new PsiSession();
         psiSession.setCacheEnabled(psiCacheProvider != null);
         psiSession.setKeySize(psiAlgorithmParameter.getKeySize());
         psiSession.setAlgorithm(AlgorithmMapper.toEntity(psiAlgorithmParameter.getAlgorithm()));
-        psiSession.setKeyId(psiKeyOptional.get().getKeyId());
+        psiSession.setKeyId(psiKeyId);
         psiSession.setExpiration(getExpirationTime());
         psiSession.setSessionId((long)(Math.random() * (Long.MAX_VALUE)));
         psiSessionRepository.save(psiSession);
@@ -131,16 +116,13 @@ public class PsiSessionService {
         psiServer.setConfiguration(new PsiRuntimeConfiguration(GlobalVariable.DEFAULT_THREADS));
         return psiServer;
     }
-
-    private PsiServerSession buildPsiServerSession(Algorithm algorithm, int keySize, PsiKey psiKey){
+/*
+    private PsiServerSession buildPsiServerSession(Algorithm algorithm, int keySize, PsiServerKeyDescription psiServerKeyDescription){
         log.trace("Calling buildPsiServerSession with algorithm = {}, keySize = {}", algorithm, keySize);
-        // Build the ServerKeyDescription to be passed into the PsiServerSession
-        PsiServerKeyDescription psiServerKeyDescription = buildPsiServerKeyDescription(AlgorithmMapper.toPsiAlgorithm(algorithm), psiKey);
-
         // Build the ServerSession used to load the PsiServer
         return new PsiServerSession(AlgorithmMapper.toPsiAlgorithm(algorithm), keySize, psiCacheProvider != null, psiServerKeyDescription);
     }
-
+*/
     private PsiServerSession getPsiServerSession(long sessionId) throws SessionNotFoundException, SessionExpiredException {
         log.trace("Calling getPsiServerSession with sessionId = {}", sessionId);
 
@@ -154,11 +136,14 @@ public class PsiSessionService {
             throw new SessionExpiredException();
 
         // Retrieve the key used by the current session
-        PsiKey psiKey = storedAlgorithmKey.findByKeyId(psiSession.getKeyId())
-                    .orElseThrow(KeyNotAvailableException::new);
+        PsiServerKeyDescription psiServerKeyDescription = psiKeyService.findAndBuildByKeyId(psiSession.getKeyId());
 
-        // Build the PsiServerSession object
-        return buildPsiServerSession(psiSession.getAlgorithm(), psiSession.getKeySize(), psiKey);
+        // Build the ServerSession used to load the PsiServer
+        return new PsiServerSession(
+                AlgorithmMapper.toPsiAlgorithm(psiSession.getAlgorithm()),
+                psiSession.getKeySize(),
+                psiSession.getCacheEnabled(),
+                psiServerKeyDescription);
     }
 
     // Used to check the status of the session
@@ -170,12 +155,14 @@ public class PsiSessionService {
                 .orElseThrow(SessionNotFoundException::new);
 
         // Retrieve the key used by the current session
-        PsiKey psiKey =  storedAlgorithmKey.findByKeyId(psiSession.getKeyId())
-                    .orElseThrow(KeyNotAvailableException::new);
+        PsiServerKeyDescription psiServerKeyDescription = psiKeyService.findAndBuildByKeyId(psiSession.getKeyId());
 
         // Build the PsiServerSession object
-        PsiServerSession psiServerSession =
-                buildPsiServerSession(psiSession.getAlgorithm(), psiSession.getKeySize(), psiKey);
+        PsiServerSession psiServerSession =new PsiServerSession(
+                AlgorithmMapper.toPsiAlgorithm(psiSession.getAlgorithm()),
+                psiSession.getKeySize(),
+                psiSession.getCacheEnabled(),
+                psiServerKeyDescription);
 
         PsiClientSessionDTO psiClientSessionDTO = new PsiClientSessionDTO();
         psiClientSessionDTO.setExpiration(psiSession.getExpiration());

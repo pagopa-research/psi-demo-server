@@ -2,19 +2,23 @@ package it.lockless.psidemoserver.config;
 
 import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class StoredAlgorithmKey {
 
-    private Map<Long, PsiKey> keyIdMap;
+    private ConcurrentHashMap<Long, PsiKey> keyIdMap;
 
-    public StoredAlgorithmKey(Set<PsiKey> psiKeySet) {
-        this.keyIdMap = new HashMap<>();
+    StoredAlgorithmKey(Set<PsiKey> psiKeySet) {
+        this.keyIdMap = new ConcurrentHashMap<>();
         psiKeySet.forEach(key ->
                 keyIdMap.put(key.getKeyId(), key));
+    }
+
+    public void storeKey(PsiKey psiKey){
+        keyIdMap.put(psiKey.getKeyId(), psiKey);
+
     }
 
     public Optional<PsiKey> findByAlgorithmAndKeySize(Algorithm algorithm, int keySize) {
