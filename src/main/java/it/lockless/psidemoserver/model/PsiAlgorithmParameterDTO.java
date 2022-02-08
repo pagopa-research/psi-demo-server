@@ -6,6 +6,9 @@ import javax.validation.constraints.NotNull;
 
 public class PsiAlgorithmParameterDTO {
 
+    public PsiAlgorithmParameterDTO() {
+    }
+
     @NotNull
     private PsiAlgorithmParameter content;
 

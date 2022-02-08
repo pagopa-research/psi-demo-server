@@ -33,7 +33,7 @@ public class PsiKeyService {
             case BS:
                 return PsiServerKeyDescriptionFactory.createBsServerKeyDescription(psiKey.getPrivateKey(), psiKey.getPublicKey(), psiKey.getModulus());
             case DH:
-                return PsiServerKeyDescriptionFactory.createDhServerKeyDescription(psiKey.getPrivateKey(), psiKey.getModulus());
+                return PsiServerKeyDescriptionFactory.createDhServerKeyDescription(psiKey.getPrivateKey(), psiKey.getModulus(), psiKey.getGenerator());
             case ECBS:
                 return PsiServerKeyDescriptionFactory.createEcBsServerKeyDescription(psiKey.getPrivateKey(), psiKey.getPublicKey(), psiKey.getEcSpecName());
             case ECDH:
@@ -56,6 +56,7 @@ public class PsiKeyService {
             case DH:
                 psiKey.setModulus(psiServerKeyDescription.getModulus());
                 psiKey.setPrivateKey(psiServerKeyDescription.getPrivateKey());
+                psiKey.setGenerator(psiServerKeyDescription.getGenerator());
                 break;
             case ECBS:
                 psiKey.setPublicKey(psiServerKeyDescription.getEcPublicKey());

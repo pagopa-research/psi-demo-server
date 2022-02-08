@@ -20,6 +20,8 @@ public class PsiKey implements Serializable {
 
     private String modulus;
 
+    private String generator;
+
     @NotNull
     private String privateKey;
 
@@ -84,6 +86,14 @@ public class PsiKey implements Serializable {
         this.ecSpecName = ecSpecName;
     }
 
+    public String getGenerator() {
+        return generator;
+    }
+
+    public void setGenerator(String generator) {
+        this.generator = generator;
+    }
+
     @Override
     public String toString() {
         return "PsiKey{" +
@@ -91,6 +101,7 @@ public class PsiKey implements Serializable {
                 ", algorithm=" + algorithm +
                 ", keySize=" + keySize +
                 ", modulus='" + modulus + '\'' +
+                ", generator='" + generator + '\'' +
                 ", privateKey='" + privateKey + '\'' +
                 ", publicKey='" + publicKey + '\'' +
                 ", ecSpecName='" + ecSpecName + '\'' +
