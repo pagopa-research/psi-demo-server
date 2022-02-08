@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import psi.exception.UnsupportedKeySizeException;
 
 import javax.validation.Valid;
 import java.util.Map;
@@ -54,7 +55,11 @@ public class PsiController {
 	@PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<PsiClientSessionDTO> initSession(@Valid @RequestBody PsiAlgorithmParameterDTO psiAlgorithmParameterDTO) {
 		log.debug("Calling initSession with psiAlgorithmParameterDTO = {}", psiAlgorithmParameterDTO);
-		return ResponseEntity.ok(psiSessionService.initSession(psiAlgorithmParameterDTO));
+		try {
+			return ResponseEntity.ok(psiSessionService.initSession(psiAlgorithmParameterDTO));
+		} catch (UnsupportedKeySizeException e) {
+			return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+		}
 	}
 
 	@Operation(description = "Retrieve the server encryption of the client dataset passed in input.",  responses = {

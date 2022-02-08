@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import psi.cache.PsiCacheProvider;
+import psi.exception.UnsupportedKeySizeException;
 import psi.model.PsiAlgorithm;
 import psi.model.PsiAlgorithmParameter;
 import psi.model.PsiClientSession;
@@ -80,19 +81,21 @@ public class PsiSessionService {
         throw new CustomRuntimeException("The algorithm "+psiAlgorithm+" is not supported");
     }
 
-    public PsiClientSessionDTO initSession(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO) {
+    public PsiClientSessionDTO initSession(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO) throws UnsupportedKeySizeException {
         log.info("Calling initSession with psiAlgorithmParameterDTO = {}", psiAlgorithmParameterDTO);
 
         PsiAlgorithmParameter psiAlgorithmParameter = psiAlgorithmParameterDTO.getContent();
 
         // Retrieve the key corresponding to the pair <algorithm, keySIze>
-        PsiKey psiKey = storedAlgorithmKey.findByAlgorithmAndKeySize(
+        Optional<PsiKey> psiKeyOptional = storedAlgorithmKey.findByAlgorithmAndKeySize(
                 AlgorithmMapper.toEntity(psiAlgorithmParameter.getAlgorithm()),
-                psiAlgorithmParameter.getKeySize())
-                .orElseThrow(KeyNotAvailableException::new);
+                psiAlgorithmParameter.getKeySize());
+
+        if(!psiKeyOptional.isPresent())
+            throw new UnsupportedKeySizeException(psiAlgorithmParameter.getAlgorithm(), psiAlgorithmParameter.getKeySize());
 
         // Build ServerKeyDescription
-        PsiServerKeyDescription psiServerKeyDescription = buildPsiServerKeyDescription(psiAlgorithmParameter.getAlgorithm(), psiKey);
+        PsiServerKeyDescription psiServerKeyDescription = buildPsiServerKeyDescription(psiAlgorithmParameter.getAlgorithm(), psiKeyOptional.get());
 
         // Init a new server session
         PsiServerSession psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameter, psiServerKeyDescription, psiCacheProvider);
@@ -102,7 +105,7 @@ public class PsiSessionService {
         psiSession.setCacheEnabled(psiCacheProvider != null);
         psiSession.setKeySize(psiAlgorithmParameter.getKeySize());
         psiSession.setAlgorithm(AlgorithmMapper.toEntity(psiAlgorithmParameter.getAlgorithm()));
-        psiSession.setKeyId(psiKey.getKeyId());
+        psiSession.setKeyId(psiKeyOptional.get().getKeyId());
         psiSession.setExpiration(getExpirationTime());
         psiSession.setSessionId((long)(Math.random() * (Long.MAX_VALUE)));
         psiSessionRepository.save(psiSession);

@@ -13,5 +13,4 @@ public class PsiDemoServerApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(PsiDemoServerApplication.class, args);
 	}
-
 }
