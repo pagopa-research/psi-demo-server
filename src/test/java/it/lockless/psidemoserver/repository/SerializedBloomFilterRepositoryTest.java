@@ -16,15 +16,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-public class SerializedBloomFilterRepositoryTest {
+class SerializedBloomFilterRepositoryTest {
 
     @Autowired
-    SerializedBloomFilterRepository serializedBloomFilterRepository;
+    private SerializedBloomFilterRepository serializedBloomFilterRepository;
 
     private SerializedBloomFilter serializedBloomFilter1;
 
     @BeforeEach
-    public void init(){
+    void init(){
+        serializedBloomFilterRepository.findAll().forEach(System.out::println);
+
         String s1 = "String1";
         String s2 = "String2";
         serializedBloomFilter1 = new SerializedBloomFilter();
@@ -40,7 +42,7 @@ public class SerializedBloomFilterRepositoryTest {
     }
 
     @Test
-    public void findLastByBloomFilterCreationDateTest(){
+    void findLastByBloomFilterCreationDateTest(){
         Optional<SerializedBloomFilter> serializedBloomFilterOptional = serializedBloomFilterRepository.findFirstByOrderByBloomFilterCreationDateDesc();
         assertTrue(serializedBloomFilterOptional.isPresent());
         assertEquals(serializedBloomFilter1.getId(), serializedBloomFilterOptional.get().getId());

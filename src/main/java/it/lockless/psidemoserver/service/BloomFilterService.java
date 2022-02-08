@@ -19,9 +19,9 @@ import java.util.Set;
 @Service
 public class BloomFilterService {
 
-    final PsiElementRepository psiElementRepository;
+    private final PsiElementRepository psiElementRepository;
 
-    final SerializedBloomFilterRepository serializedBloomFilterRepository;
+    private final SerializedBloomFilterRepository serializedBloomFilterRepository;
 
     @Value("${bloomfilter.fpp}")
     private double bloomFilterFpp;
@@ -31,7 +31,7 @@ public class BloomFilterService {
         this.serializedBloomFilterRepository = serializedBloomFilterRepository;
     }
 
-    public SerializedBloomFilter computeSerializedBloomFilter(){
+    private SerializedBloomFilter computeSerializedBloomFilter(){
         List<PsiElement> psiElementList = psiElementRepository.findAll();
         Set<String> dataSet = new HashSet<>();
         for(PsiElement psiElement : psiElementList)
@@ -49,11 +49,11 @@ public class BloomFilterService {
     }
 
 
-    public void saveSerializedBloomFilter(SerializedBloomFilter serializedBloomFilter){
+    private void saveSerializedBloomFilter(SerializedBloomFilter serializedBloomFilter){
         this.serializedBloomFilterRepository.save(serializedBloomFilter);
     }
 
-    public Optional<SerializedBloomFilter> getLastSerializedBloomFilter(){
+    Optional<SerializedBloomFilter> getLastSerializedBloomFilter(){
         return serializedBloomFilterRepository.findFirstByOrderByBloomFilterCreationDateDesc();
     }
 }
