@@ -21,7 +21,7 @@ public class BloomFilterCron {
         this.bloomFilterService = bloomFilterService;
     }
 
-    // Called each 5 minutes to update the Bloom Filter
+    // The Bloom Filter is periodically computed
     @Scheduled(fixedRateString = "${bloomfilter.interval.mseconds:300000}", initialDelayString = "${bloomfilter.interval.mseconds:300000}")
     public void updateBloomFilter(){
         if(bloomFilterEnabled) {

@@ -3,7 +3,6 @@ package it.lockless.psidemoserver.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import it.lockless.psidemoserver.model.*;
-import it.lockless.psidemoserver.service.BloomFilterService;
 import it.lockless.psidemoserver.service.DatasetService;
 import it.lockless.psidemoserver.service.EncryptionService;
 import it.lockless.psidemoserver.service.PsiSessionService;
@@ -43,7 +42,7 @@ public class PsiController {
 			@ApiResponse(responseCode = "200", description = "successful operation"),
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@GetMapping(value = "/parameters", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<PsiAlgorithmParameterListDTO> getParameters() {
+	ResponseEntity<PsiAlgorithmParameterListDTO> getParameters() {
 		log.debug("Calling getParameters");
 		return ResponseEntity.ok(encryptionService.getAvailablePsiAlgorithmParameter());
 	}
@@ -53,7 +52,7 @@ public class PsiController {
 			@ApiResponse(responseCode = "400", description = "wrong or missing input"),
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<PsiClientSessionDTO> initSession(@Valid @RequestBody PsiAlgorithmParameterDTO psiAlgorithmParameterDTO) {
+	ResponseEntity<PsiClientSessionDTO> initSession(@Valid @RequestBody PsiAlgorithmParameterDTO psiAlgorithmParameterDTO) {
 		log.debug("Calling initSession with psiAlgorithmParameterDTO = {}", psiAlgorithmParameterDTO);
 		try {
 			return ResponseEntity.ok(psiSessionService.initSession(psiAlgorithmParameterDTO));
@@ -69,7 +68,7 @@ public class PsiController {
 			@ApiResponse(responseCode = "408", description = "session expired"),
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@PostMapping(value = "/{sessionId}/clientSet", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<PsiDatasetMapDTO> encryptClientDataset(@PathVariable("sessionId") Long sessionId, @Valid @RequestBody PsiDatasetMapDTO psiDatasetMapDTO) {
+	ResponseEntity<PsiDatasetMapDTO> encryptClientDataset(@PathVariable("sessionId") Long sessionId, @Valid @RequestBody PsiDatasetMapDTO psiDatasetMapDTO) {
 		log.debug("Calling encryptClientDataset with sessionId = {}, psiDatasetMapDTO.size() = {}", sessionId, psiDatasetMapDTO.getContent().size());
         try {
             return ResponseEntity.ok(encryptionService.encryptClientSet(sessionId, psiDatasetMapDTO));
@@ -87,10 +86,10 @@ public class PsiController {
 			@ApiResponse(responseCode = "408", description = "session expired"),
 			@ApiResponse(responseCode = "500", description = "internal server error") })
 	@GetMapping(value = "/{sessionId}/serverSet", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<PsiServerDatasetPageDTO> getEncryptedServerServerDataset(
+	ResponseEntity<PsiServerDatasetPageDTO> getEncryptedServerServerDataset(
 			@PathVariable("sessionId") Long sessionId,
-			@RequestParam(value="page", defaultValue = "0") Integer page,
-			@RequestParam(value="size", defaultValue = "1000") Integer size) {
+			@RequestParam(value = "page", defaultValue = "0") Integer page,
+			@RequestParam(value = "size", defaultValue = "1000") Integer size) {
 		log.debug("Called PsiServerDatasetPageDTO with sessionId = {}, page = {}, size = {}", sessionId, page, size);
         try {
             return ResponseEntity.ok(encryptionService.getEncryptedServerDataset(sessionId, page, size));

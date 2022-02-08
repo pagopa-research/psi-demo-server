@@ -9,8 +9,6 @@ public class PsiAlgorithmParameterDTO {
     @NotNull
     private PsiAlgorithmParameter content;
 
-    public PsiAlgorithmParameterDTO() {}
-
     public PsiAlgorithmParameterDTO(PsiAlgorithmParameter content) {
         this.content = content;
     }

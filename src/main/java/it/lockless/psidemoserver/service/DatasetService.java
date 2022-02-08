@@ -26,6 +26,8 @@ public class DatasetService {
         this.bloomFilterService = bloomFilterService;
     }
 
+    // Fill the database with a dummy set described by the input map.
+    // Note: This function is provided only for testing purposes
     public void initServerDataset(Map<String, Integer> datasetStructure){
         log.debug("Calling initServerDataset with datasetStructure = {}", datasetStructure);
         psiElementRepository.deleteAll();

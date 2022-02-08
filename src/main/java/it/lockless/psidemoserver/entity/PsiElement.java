@@ -4,6 +4,11 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Objects;
 
+/*
+It represents a generic object on which compute the Psi.
+This table can be augmented with other information, like data source and/or topic.
+ */
+
 @Entity
 @Table(name = "psi_element")
 public class PsiElement  implements Serializable {
@@ -16,9 +21,6 @@ public class PsiElement  implements Serializable {
     @Column(name = "id")
     private long id;
 
-    @Column(name = "source")
-    private String source;
-
     @Column(name = "value", nullable = false)
     private String value;
 
@@ -28,14 +30,6 @@ public class PsiElement  implements Serializable {
 
     public void setId(long id) {
         this.id = id;
-    }
-
-    public String getSource() {
-        return source;
-    }
-
-    public void setSource(String source) {
-        this.source = source;
     }
 
     public String getValue() {
@@ -53,12 +47,11 @@ public class PsiElement  implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         PsiElement that = (PsiElement) o;
         return id == that.id &&
-                Objects.equals(source, that.source) &&
                 value.equals(that.value);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, source, value);
+        return Objects.hash(id, value);
     }
 }

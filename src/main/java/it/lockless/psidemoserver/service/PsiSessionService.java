@@ -43,7 +43,7 @@ public class PsiSessionService {
 
     private final PsiSessionRepository psiSessionRepository;
 
-    private final PsiKeyService psiKeyService; //private final StoredAlgorithmKey storedAlgorithmKey;
+    private final PsiKeyService psiKeyService;
 
     private PsiCacheProvider psiCacheProvider;
 
@@ -60,11 +60,14 @@ public class PsiSessionService {
         this.bloomFilterService = bloomFilterService;
     }
 
+    // Compute the expiration time starting from the current time
     private Instant getExpirationTime(){
         log.trace("Calling getExpirationTime");
         return Instant.now().plus(minutesBeforeSessionExpiration, ChronoUnit.MINUTES);
     }
 
+    // Initialize and store a new session based on the input algorithm parameters
+    // and build the PsiClientSessionDTO to be returned to the client
     public PsiClientSessionDTO initSession(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO) throws UnsupportedKeySizeException {
         log.info("Calling initSession with psiAlgorithmParameterDTO = {}", psiAlgorithmParameterDTO);
 
@@ -110,19 +113,15 @@ public class PsiSessionService {
         return psiClientSessionDTO;
     }
 
+    // Build a PsiServer based on the input sessionId
     PsiServer loadPsiServerBySessionId(long sessionId) throws SessionNotFoundException, SessionExpiredException {
         log.debug("Calling loadPsiServerBySessionId with sessionId = {}", sessionId);
         PsiServer psiServer = PsiServerFactory.loadSession(getPsiServerSession(sessionId), psiCacheProvider);
         psiServer.setConfiguration(new PsiRuntimeConfiguration(GlobalVariable.DEFAULT_THREADS));
         return psiServer;
     }
-/*
-    private PsiServerSession buildPsiServerSession(Algorithm algorithm, int keySize, PsiServerKeyDescription psiServerKeyDescription){
-        log.trace("Calling buildPsiServerSession with algorithm = {}, keySize = {}", algorithm, keySize);
-        // Build the ServerSession used to load the PsiServer
-        return new PsiServerSession(AlgorithmMapper.toPsiAlgorithm(algorithm), keySize, psiCacheProvider != null, psiServerKeyDescription);
-    }
-*/
+
+    // Retrieve the information about the sessionId and build the PsiServerSession
     private PsiServerSession getPsiServerSession(long sessionId) throws SessionNotFoundException, SessionExpiredException {
         log.trace("Calling getPsiServerSession with sessionId = {}", sessionId);
 
@@ -146,7 +145,7 @@ public class PsiSessionService {
                 psiServerKeyDescription);
     }
 
-    // Used to check the status of the session
+    // Retrieve the information about the sessionId and build the PsiClientSessionDTO
     public PsiClientSessionDTO getPsiClientSessionDTO(long sessionId) throws SessionNotFoundException {
         log.trace("Calling getPsiClientSessionDTO with sessionId = {}", sessionId);
 

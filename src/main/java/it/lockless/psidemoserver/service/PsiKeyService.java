@@ -27,7 +27,7 @@ public class PsiKeyService {
     }
 
     // Build PsiServerKeyDescription from a PsiKey
-    public PsiServerKeyDescription buildPsiServerKeyDescription(PsiKey psiKey){
+    PsiServerKeyDescription buildPsiServerKeyDescription(PsiKey psiKey){
         log.trace("Calling buildPsiServerKeyDescription with psiKey = {}", psiKey);
         switch (psiKey.getAlgorithm()) {
             case BS:
@@ -44,7 +44,7 @@ public class PsiKeyService {
     }
 
     // Build and store a PsiKey from a PsiServerKeyDescription
-    public Long storePsiServerKeyDescription(PsiAlgorithmParameter psiAlgorithmParameter, PsiServerKeyDescription psiServerKeyDescription){
+    Long storePsiServerKeyDescription(PsiAlgorithmParameter psiAlgorithmParameter, PsiServerKeyDescription psiServerKeyDescription){
         log.debug("Calling storePsiServerKeyDescription with psiAlgorithmParameter = {}, psiServerKeyDescription = {}", psiAlgorithmParameter, psiServerKeyDescription);
         PsiKey psiKey = new PsiKey();
         psiKey.setAlgorithm(AlgorithmMapper.toEntity(psiAlgorithmParameter.getAlgorithm()));
@@ -71,21 +71,14 @@ public class PsiKeyService {
     }
 
     // Retrieve the PsiServerKeyDescription corresponding to the keyId
-    public PsiKey findByKeyId(Long keyId){
-        log.trace("Calling findByKeyId with keyId = {}", keyId);
-        return storedAlgorithmKey.findByKeyId(keyId)
-                .orElseThrow(KeyNotAvailableException::new);
-    }
-
-    // Retrieve the PsiServerKeyDescription corresponding to the keyId
-    public PsiServerKeyDescription findAndBuildByKeyId(Long keyId){
+    PsiServerKeyDescription findAndBuildByKeyId(Long keyId){
         log.trace("Calling findByKeyId with keyId = {}", keyId);
         return storedAlgorithmKey.findByKeyId(keyId).map(this::buildPsiServerKeyDescription)
                 .orElseThrow(KeyNotAvailableException::new);
     }
 
     // If available, retrieve the PsiServerKeyDescription corresponding to the psiAlgorithm and keySize
-    public Optional<PsiKey> findByPsiAlgorithmParameter(PsiAlgorithmParameter psiAlgorithmParameter){
+    Optional<PsiKey> findByPsiAlgorithmParameter(PsiAlgorithmParameter psiAlgorithmParameter){
         log.trace("Calling findByPsiAlgorithmAndKeySize with psiAlgorithmParameter = {}", psiAlgorithmParameter);
         return storedAlgorithmKey.findByAlgorithmAndKeySize(AlgorithmMapper.toEntity(psiAlgorithmParameter.getAlgorithm()), psiAlgorithmParameter.getKeySize());
     }
