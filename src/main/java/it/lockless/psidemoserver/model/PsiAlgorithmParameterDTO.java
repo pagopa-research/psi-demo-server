@@ -4,6 +4,10 @@ import psi.model.PsiAlgorithmParameter;
 
 import javax.validation.constraints.NotNull;
 
+/**
+ * DTO encapsulating a single PsiAlgorithmParameterDTO
+ */
+
 public class PsiAlgorithmParameterDTO {
 
     public PsiAlgorithmParameterDTO() {

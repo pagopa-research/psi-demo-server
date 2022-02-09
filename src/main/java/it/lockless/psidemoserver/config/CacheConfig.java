@@ -9,10 +9,11 @@ import org.springframework.stereotype.Component;
 import psi.cache.PsiCacheProvider;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
-/*
-The provided cache is implemented based on redis.
-If the redis server is not reachable to the specified endpoint, the cache is not used.
+/**
+ * The provided cache is implemented based on redis.
+ * If the redis server is not reachable to the specified endpoint, the cache is not used.
  */
+
 @Component
 public class CacheConfig {
 

@@ -15,6 +15,10 @@ import psi.server.PsiServerKeyDescriptionFactory;
 import java.security.SecureRandom;
 import java.util.Optional;
 
+/**
+ * Functionalities related to dataset encryptions
+ * */
+
 @Service
 public class PsiKeyService {
 

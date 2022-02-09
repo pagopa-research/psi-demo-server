@@ -6,8 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import psi.model.PsiAlgorithm;
 
-/*
-This mapper is used to translate the PsiAlgorithm as represented by the sdk, with the Algorithm as stored into the DB
+/**
+ * Mapper used to translate the PsiAlgorithm as represented by the sdk, with the Algorithm as stored into the DB
  */
 
 public class AlgorithmMapper {

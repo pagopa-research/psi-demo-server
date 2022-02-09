@@ -5,8 +5,6 @@ import it.lockless.psidemoserver.model.*;
 import it.lockless.psidemoserver.repository.PsiElementRepository;
 import it.lockless.psidemoserver.service.EncryptionService;
 import it.lockless.psidemoserver.service.PsiSessionService;
-import it.lockless.psidemoserver.util.exception.SessionExpiredException;
-import it.lockless.psidemoserver.util.exception.SessionNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -52,11 +50,11 @@ class PsiControllerTest {
 
 	private PsiCacheProvider clientPsiCacheProvider = new LocalCacheImplementation();
 
-	private ConcurrentHashMap<String, String> cacheMock;// = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<String, String> cacheMock;
 
-	private AtomicInteger cachePut;// = new AtomicInteger(0);
-	private AtomicInteger cacheHit;// = new AtomicInteger(0);
-	private AtomicInteger cacheMiss;// = new AtomicInteger(0);
+	private AtomicInteger cachePut;
+	private AtomicInteger cacheHit;
+	private AtomicInteger cacheMiss;
 
 	@BeforeEach
 	void setup() {
@@ -113,10 +111,11 @@ class PsiControllerTest {
 	}
 
 	@Test
-	void fullExecutionTest() throws SessionExpiredException, SessionNotFoundException, UnsupportedKeySizeException {
+	void fullExecutionTest() throws UnsupportedKeySizeException {
 		int serverTotalElements = 30;
 		int clientTotalElements = 20;
 		int matchingElements = 10;
+
 		// Building server and client dataset
 		setupServerDataset(serverTotalElements, matchingElements);
 		Set<String> clientDataset = setupClientDataset(clientTotalElements, matchingElements);
@@ -143,6 +142,7 @@ class PsiControllerTest {
 			// Reset cache content
 			cacheMock = new ConcurrentHashMap<>();
 
+			// The whole execution is performed two times to verify that the cache is correctly used
 			for (int i = 0 ; i < 2 ;  i++) {
 				// Reset cache control variable
 				cacheHit = new AtomicInteger(0);
@@ -150,6 +150,7 @@ class PsiControllerTest {
 				cachePut = new AtomicInteger(0);
 
 				// CLIENT SIDE: Setup client
+				// Note: the client cache is used to enhance the server cache while using random number based algorithms
 				PsiClient psiClient;
 				if (psiClientKeyDescription == null) {
 					psiClient = PsiClientFactory.loadSession(psiClientSessionDTO.getPsiClientSession(), clientPsiCacheProvider);
@@ -185,10 +186,12 @@ class PsiControllerTest {
 				assertEquals(30, encryptedServerDataset.size());
 
 				if (i == 0){
+					// During the first execution the only cacheHits are the one linked to the keyId retrieving
 					assertEquals(2, cacheHit.get()); // related to the two keyDescription retrieving during the initSession, after the first one
 					assertEquals(serverTotalElements+clientTotalElements + 1, cacheMiss.get()); // first keyStoring + server dataset + client dataset
 					assertEquals(serverTotalElements+clientTotalElements + 1, cachePut.get()); // first keyStoring + server dataset + client dataset
 				} else {
+					// During the second execution we have not cacheMiss/cachePut since we are working on the same dataset of the first execution
 					assertEquals(serverTotalElements+clientTotalElements + 3, cacheHit.get()); // 3 keyStoring + server dataset + client dataset
 					assertEquals(0, cacheMiss.get());
 					assertEquals(0, cachePut.get());

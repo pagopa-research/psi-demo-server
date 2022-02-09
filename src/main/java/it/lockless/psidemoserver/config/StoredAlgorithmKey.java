@@ -16,11 +16,12 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-/*
-Important note: This service represents the abstraction of a keySore
-and is not intended to be used in a business environment.
-Replace with a proper keyStore service.
+/**
+ * Important note: This service represents the abstraction of a keyStore
+ * and is not intended to be used in a business environment.
+ * Replace with a proper keyStore service.
  */
+
 @Component
 public class StoredAlgorithmKey {
 

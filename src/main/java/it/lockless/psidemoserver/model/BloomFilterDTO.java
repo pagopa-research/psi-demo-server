@@ -5,6 +5,10 @@ import it.lockless.psidemoserver.entity.SerializedBloomFilter;
 import java.time.Instant;
 import java.util.Arrays;
 
+/**
+ * DTO encapsulating Bloom Filter byte representation
+ */
+
 public class BloomFilterDTO {
 
     private byte[] serializedBloomFilter;

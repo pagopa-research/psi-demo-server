@@ -5,12 +5,11 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Objects;
 
-/*
-It is intended to keep the information about computed Bloom Filter.
-Since only the last Bloom Filter is used, this table should be periodically cleaned up by removing old ones.
-In case elements are further characterized, this table must be augmented in order to keep different objects
-for different element sets.
-
+/**
+ * It is intended to keep the information about computed Bloom Filter.
+ * Since only the last Bloom Filter is used, this table should be periodically cleaned up by removing old ones.
+ * In case psi elements are further characterized, this table must be augmented in order to keep different objects
+ * for different element sets.
  */
 
 @Entity

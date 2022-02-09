@@ -30,6 +30,10 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
+/**
+ * It offers functionalities used to manage the sessions (creation and retrieving).
+ * */
+
 @Service
 public class PsiSessionService {
 

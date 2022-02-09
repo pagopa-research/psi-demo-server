@@ -3,6 +3,10 @@ package it.lockless.psidemoserver.model;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * DTO used to transfer client dataset, characterized by the presence of a key for each value
+ */
+
 public class PsiDatasetMapDTO {
 
     private Map<Long, String> content;

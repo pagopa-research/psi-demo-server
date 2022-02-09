@@ -5,6 +5,10 @@ import psi.model.PsiAlgorithmParameter;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * DTO encapsulating the list of supported PsiAlgorithmParameterDTO
+ */
+
 public class PsiAlgorithmParameterListDTO {
 
     private List<PsiAlgorithmParameter> content;

@@ -4,9 +4,9 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Objects;
 
-/*
-It represents a generic object on which compute the Psi.
-This table can be augmented with other information, like data source and/or topic.
+/**
+ * It represents a generic object on which compute the Psi.
+ * This table can be augmented with other information, like data source and/or topic.
  */
 
 @Entity

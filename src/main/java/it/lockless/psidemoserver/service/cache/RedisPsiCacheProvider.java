@@ -9,6 +9,10 @@ import redis.clients.jedis.JedisPool;
 
 import java.util.Optional;
 
+/**
+ * Implementation of a PsiCacheProvided based on redis.
+ * */
+
 public class RedisPsiCacheProvider implements PsiCacheProvider {
 
     private static final Logger log = LoggerFactory.getLogger(RedisPsiCacheProvider.class);

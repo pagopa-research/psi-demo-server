@@ -5,6 +5,10 @@ import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
+/**
+ * It stores the information about a single key as part of the keyStore service
+ */
+
 public class PsiKey implements Serializable {
 
     private static final long serialVersionUID = 1L;

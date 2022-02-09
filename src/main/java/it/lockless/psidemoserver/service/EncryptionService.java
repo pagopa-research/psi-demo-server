@@ -20,6 +20,10 @@ import psi.server.PsiServer;
 
 import java.util.*;
 
+/**
+ * It offers functionalities related to dataset encryptions
+ * */
+
 @Service
 public class EncryptionService {
 
@@ -35,6 +39,8 @@ public class EncryptionService {
     }
 
     // Retrieve locally a list of supported algorithms and corresponding key sizes
+    // Note: this list should be retrieved directly from the sdk,
+    // but we want offer a smaller set respect the one supported by the sdk itself
     public PsiAlgorithmParameterListDTO getAvailablePsiAlgorithmParameter(){
         log.debug("Calling getAvailableSessionParameterDTO");
 

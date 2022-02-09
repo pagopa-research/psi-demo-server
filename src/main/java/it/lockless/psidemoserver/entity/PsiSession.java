@@ -7,10 +7,10 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
 
-/*
-It is intended to keep the information on the single client session during interactions.
-Since a session is considered expired after a fixed amount of time,
-this table should be periodically cleaned up by removing old sessions.
+/**
+ * It is intended to keep the information on the single client session during interactions.
+ * Since a session is considered expired after a fixed amount of time,
+ * this table should be periodically cleaned up by removing old sessions.
  */
 
 @Entity

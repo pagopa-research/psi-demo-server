@@ -3,6 +3,9 @@ package it.lockless.psidemoserver.entity.enumeration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+/**
+ * It contains the algorithms supported by the server, including the relative key sizes.
+ */
 
 public enum Algorithm {
     DH(2048,4096),

@@ -15,6 +15,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * It contains functionalities to compute the Bloom Filter.
+ * */
+
 @SuppressWarnings("UnstableApiUsage")
 @Service
 public class BloomFilterService {

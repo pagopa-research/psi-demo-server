@@ -3,6 +3,10 @@ package it.lockless.psidemoserver.model;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * DTO used to transfer the paginated server dataset
+ */
+
 public class PsiServerDatasetPageDTO {
 
     private Integer page;

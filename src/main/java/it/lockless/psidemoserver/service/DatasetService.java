@@ -9,6 +9,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
+/**
+ * It offers functionalities used to initialize the database content.
+ * Note: this calss is intended to be used only for testing purpose. Remove it in a business environment
+ * */
+
 @Service
 public class DatasetService {
 
