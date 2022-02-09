@@ -4,6 +4,7 @@ import it.lockless.psidemoserver.entity.enumeration.Algorithm;
 
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * It stores the information about a single key as part of the keyStore service
@@ -31,8 +32,6 @@ public class PsiKey implements Serializable {
 
     @NotNull
     private String publicKey;
-
-    private String ecSpecName;
 
     public Algorithm getAlgorithm() {
         return algorithm;
@@ -82,20 +81,31 @@ public class PsiKey implements Serializable {
         this.privateKey = privateKey;
     }
 
-    public String getEcSpecName() {
-        return ecSpecName;
-    }
-
-    public void setEcSpecName(String ecSpecName) {
-        this.ecSpecName = ecSpecName;
-    }
-
     public String getGenerator() {
         return generator;
     }
 
     public void setGenerator(String generator) {
         this.generator = generator;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PsiKey psiKey = (PsiKey) o;
+        return Objects.equals(keyId, psiKey.keyId) &&
+                algorithm == psiKey.algorithm &&
+                Objects.equals(keySize, psiKey.keySize) &&
+                Objects.equals(modulus, psiKey.modulus) &&
+                Objects.equals(generator, psiKey.generator) &&
+                Objects.equals(privateKey, psiKey.privateKey) &&
+                Objects.equals(publicKey, psiKey.publicKey);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(keyId, algorithm, keySize, modulus, generator, privateKey, publicKey);
     }
 
     @Override
@@ -108,7 +118,6 @@ public class PsiKey implements Serializable {
                 ", generator='" + generator + '\'' +
                 ", privateKey='" + privateKey + '\'' +
                 ", publicKey='" + publicKey + '\'' +
-                ", ecSpecName='" + ecSpecName + '\'' +
                 '}';
     }
 }

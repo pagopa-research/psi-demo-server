@@ -7,7 +7,7 @@ import java.util.Optional;
 
 /**
  * Repository of PsiSession.
- * */
+ */
 
 public interface PsiSessionRepository extends JpaRepository<PsiSession, Long> {
 

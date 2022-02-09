@@ -17,7 +17,7 @@ import java.util.Optional;
 
 /**
  * Functionalities related to dataset encryptions
- * */
+ */
 
 @Service
 public class PsiKeyService {
@@ -39,15 +39,17 @@ public class PsiKeyService {
             case DH:
                 return PsiServerKeyDescriptionFactory.createDhServerKeyDescription(psiKey.getPrivateKey(), psiKey.getModulus(), psiKey.getGenerator());
             case ECBS:
-                return PsiServerKeyDescriptionFactory.createEcBsServerKeyDescription(psiKey.getPrivateKey(), psiKey.getPublicKey(), psiKey.getEcSpecName());
+                return PsiServerKeyDescriptionFactory.createEcBsServerKeyDescription(psiKey.getPrivateKey(), psiKey.getPublicKey());
             case ECDH:
-                return PsiServerKeyDescriptionFactory.createEcDhServerKeyDescription(psiKey.getPrivateKey(), psiKey.getEcSpecName());
+                return PsiServerKeyDescriptionFactory.createEcDhServerKeyDescription(psiKey.getPrivateKey());
             default:
                 throw new CustomRuntimeException("The algorithm "+psiKey.getAlgorithm()+" is not supported");
         }
     }
 
-    // Build and store a PsiKey from a PsiServerKeyDescription
+    /**
+     * Build and store a PsiKey from a PsiServerKeyDescription
+     */
     Long storePsiServerKeyDescription(PsiAlgorithmParameter psiAlgorithmParameter, PsiServerKeyDescription psiServerKeyDescription){
         log.debug("Calling storePsiServerKeyDescription with psiAlgorithmParameter = {}, psiServerKeyDescription = {}", psiAlgorithmParameter, psiServerKeyDescription);
         PsiKey psiKey = new PsiKey();
@@ -56,17 +58,16 @@ public class PsiKeyService {
         psiKey.setKeyId((new SecureRandom()).nextLong());
         switch (psiAlgorithmParameter.getAlgorithm()){
             case BS:
-                psiKey.setPublicKey(psiServerKeyDescription.getPublicKey());
+                psiKey.setPublicKey(psiServerKeyDescription.getPublicExponent());
             case DH:
                 psiKey.setModulus(psiServerKeyDescription.getModulus());
-                psiKey.setPrivateKey(psiServerKeyDescription.getPrivateKey());
+                psiKey.setPrivateKey(psiServerKeyDescription.getPrivateExponent());
                 psiKey.setGenerator(psiServerKeyDescription.getGenerator());
                 break;
             case ECBS:
-                psiKey.setPublicKey(psiServerKeyDescription.getEcPublicKey());
+                psiKey.setPublicKey(psiServerKeyDescription.getEcPublicQ());
             case ECDH:
-                psiKey.setEcSpecName(psiServerKeyDescription.getEcSpecName());
-                psiKey.setPrivateKey(psiServerKeyDescription.getEcPrivateKey());
+                psiKey.setPrivateKey(psiServerKeyDescription.getEcPrivateD());
                 break;
             default:
                 throw new CustomRuntimeException("The algorithm "+psiAlgorithmParameter.getAlgorithm()+" is not supported");
@@ -75,14 +76,18 @@ public class PsiKeyService {
         return psiKey.getKeyId();
     }
 
-    // Retrieve the PsiServerKeyDescription corresponding to the keyId
+    /**
+     * Retrieve the PsiServerKeyDescription corresponding to the keyId
+     */
     PsiServerKeyDescription findAndBuildByKeyId(Long keyId){
         log.trace("Calling findByKeyId with keyId = {}", keyId);
         return storedAlgorithmKey.findByKeyId(keyId).map(this::buildPsiServerKeyDescription)
                 .orElseThrow(KeyNotAvailableException::new);
     }
 
-    // If available, retrieve the PsiServerKeyDescription corresponding to the psiAlgorithm and keySize
+    /**
+     * If available, retrieve the PsiServerKeyDescription corresponding to the psiAlgorithm and keySize
+     */
     Optional<PsiKey> findByPsiAlgorithmParameter(PsiAlgorithmParameter psiAlgorithmParameter){
         log.trace("Calling findByPsiAlgorithmAndKeySize with psiAlgorithmParameter = {}", psiAlgorithmParameter);
         return storedAlgorithmKey.findByAlgorithmAndKeySize(AlgorithmMapper.toEntity(psiAlgorithmParameter.getAlgorithm()), psiAlgorithmParameter.getKeySize());

@@ -11,7 +11,7 @@ import java.util.Optional;
 
 /**
  * Implementation of a PsiCacheProvided based on redis.
- * */
+ */
 
 public class RedisPsiCacheProvider implements PsiCacheProvider {
 

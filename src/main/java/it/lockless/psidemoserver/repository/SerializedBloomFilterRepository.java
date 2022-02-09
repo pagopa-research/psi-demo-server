@@ -7,7 +7,7 @@ import java.util.Optional;
 
 /**
  * Repository of SerializedBloomFilter.
- * */
+ */
 
 public interface SerializedBloomFilterRepository extends JpaRepository<SerializedBloomFilter, Long> {
 

@@ -22,7 +22,7 @@ import java.util.*;
 
 /**
  * It offers functionalities related to dataset encryptions
- * */
+ */
 
 @Service
 public class EncryptionService {
@@ -38,9 +38,11 @@ public class EncryptionService {
         this.psiElementRepository = psiElementRepository;
     }
 
-    // Retrieve locally a list of supported algorithms and corresponding key sizes
-    // Note: this list should be retrieved directly from the sdk,
-    // but we want offer a smaller set respect the one supported by the sdk itself
+    /**
+     * Retrieve locally a list of supported algorithms and corresponding key sizes
+     * Note: this list should be retrieved directly from the sdk,
+     * but we want offer a smaller set respect the one supported by the sdk itself
+     */
     public PsiAlgorithmParameterListDTO getAvailablePsiAlgorithmParameter(){
         log.debug("Calling getAvailableSessionParameterDTO");
 
@@ -54,7 +56,9 @@ public class EncryptionService {
         return new PsiAlgorithmParameterListDTO(psiAlgorithmParameterList);
     }
 
-    // Encrypt the passed client dataset using the key associated with the session
+    /**
+     * Encrypt the passed client dataset using the key associated with the session
+     */
     public PsiDatasetMapDTO encryptClientSet(long sessionId, PsiDatasetMapDTO clientSet) throws SessionNotFoundException, SessionExpiredException {
         log.debug("Calling encryptClientSet with sessionId = {}, clientSet.size() = {}", sessionId, clientSet.getContent().size());
         // Retrieve psiServe instance
@@ -67,7 +71,9 @@ public class EncryptionService {
         return new PsiDatasetMapDTO(encryptedClientSet);
     }
 
-    // Encrypt a server dataset page (represented by page number and size) using the key associated with the session
+    /**
+     * Encrypt a server dataset page (represented by page number and size) using the key associated with the session
+     */
     public PsiServerDatasetPageDTO getEncryptedServerDataset(long sessionId, int page, int size) throws SessionNotFoundException, SessionExpiredException {
         log.debug("Calling getEncryptedServerDataset with sessionId = {}, page = {}, size = {}", sessionId, page, size);
         // Retrieve the psiServe instance

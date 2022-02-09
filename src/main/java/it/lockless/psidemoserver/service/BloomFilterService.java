@@ -17,7 +17,7 @@ import java.util.Set;
 
 /**
  * It contains functionalities to compute the Bloom Filter.
- * */
+ */
 
 @SuppressWarnings("UnstableApiUsage")
 @Service
@@ -35,6 +35,9 @@ public class BloomFilterService {
         this.serializedBloomFilterRepository = serializedBloomFilterRepository;
     }
 
+    /**
+     * Compute the Bloom Filter based on the actual element set
+     */
     private SerializedBloomFilter computeSerializedBloomFilter(){
         List<PsiElement> psiElementList = psiElementRepository.findAll();
         Set<String> dataSet = new HashSet<>();
@@ -47,16 +50,17 @@ public class BloomFilterService {
         return serializedBloomFilter;
     }
 
+    /**
+     * Compute and store the Bloom Filter
+     */
     public void computeAndSaveSerializedBloomFilter(){
-        SerializedBloomFilter serializedBloomFilter = this.computeSerializedBloomFilter();
-        this.saveSerializedBloomFilter(serializedBloomFilter);
-    }
-
-
-    private void saveSerializedBloomFilter(SerializedBloomFilter serializedBloomFilter){
+        SerializedBloomFilter serializedBloomFilter = computeSerializedBloomFilter();
         this.serializedBloomFilterRepository.save(serializedBloomFilter);
     }
 
+    /**
+     * Retrieve the last computed Bloom Filter
+     */
     Optional<SerializedBloomFilter> getLastSerializedBloomFilter(){
         return serializedBloomFilterRepository.findFirstByOrderByBloomFilterCreationDateDesc();
     }
