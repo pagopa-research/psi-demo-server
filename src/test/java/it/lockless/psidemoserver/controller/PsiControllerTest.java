@@ -132,7 +132,7 @@ class PsiControllerTest {
 			PsiClientKeyDescription psiClientKeyDescription = null;
 
 			// Initialize a new Session
-			PsiClientSessionDTO psiClientSessionDTO = controller.initSession(new PsiAlgorithmParameterDTO(psiAlgorithmParameter)).getBody();
+			PsiClientSessionDTO psiClientSessionDTO = (PsiClientSessionDTO) controller.initSession(new PsiAlgorithmParameterDTO(psiAlgorithmParameter)).getBody();
 			assertNotNull(psiClientSessionDTO);
 			assertNotNull(psiClientSessionDTO.getPsiClientSession());
 			assertNotNull(psiClientSessionDTO.getExpiration());
@@ -165,12 +165,12 @@ class PsiControllerTest {
 				PsiDatasetMapDTO psiDatasetMapDTO = new PsiDatasetMapDTO(encryptedClientDataset);
 
 				// Double encrypt client dataset
-				PsiDatasetMapDTO returnedPsiDatasetMapDTO = controller.encryptClientDataset(sessionId, psiDatasetMapDTO).getBody();
+				PsiDatasetMapDTO returnedPsiDatasetMapDTO = (PsiDatasetMapDTO) controller.encryptClientDataset(sessionId, psiDatasetMapDTO).getBody();
 				assertNotNull(returnedPsiDatasetMapDTO);
 				assertEquals(clientDataset.size(), returnedPsiDatasetMapDTO.getContent().size());
 
 				// Encrypt server dataset in two different pages
-				PsiServerDatasetPageDTO page = controller.getEncryptedServerServerDataset(sessionId, 0, 20).getBody();
+				PsiServerDatasetPageDTO page = (PsiServerDatasetPageDTO) controller.getEncryptedServerServerDataset(sessionId, 0, 20).getBody();
 				assertNotNull(page);
 				assertEquals(serverTotalElements, page.getTotalEntries());
 				assertEquals(2, page.getTotalPages());
@@ -178,7 +178,7 @@ class PsiControllerTest {
 				assertEquals(20, page.getSize());
 
 				Set<String> encryptedServerDataset = new HashSet<>(page.getContent());
-				page = controller.getEncryptedServerServerDataset(sessionId, 1, 20).getBody();
+				page = (PsiServerDatasetPageDTO) controller.getEncryptedServerServerDataset(sessionId, 1, 20).getBody();
 				assertNotNull(page);
 				assertEquals(10, page.getEntries());
 				assertEquals(20, page.getSize());

@@ -21,7 +21,7 @@ import psi.server.PsiServer;
 import java.util.*;
 
 /**
- * It offers functionalities related to dataset encryptions
+ * It offers functionalities related to dataset encryptions.
  */
 
 @Service
