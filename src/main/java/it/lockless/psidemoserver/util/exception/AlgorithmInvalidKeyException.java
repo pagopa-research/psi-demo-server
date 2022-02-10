@@ -1,6 +1,9 @@
 package it.lockless.psidemoserver.util.exception;
 
-public class AlgorithmInvalidKeyException extends RuntimeException {
+/**
+ Exception thrown whenever the client is attempting to use a keySize not supported by the sdk for the select algorithm.
+ */
+public class AlgorithmInvalidKeyException extends Exception {
     public AlgorithmInvalidKeyException(String message) {
         super(message);
     }

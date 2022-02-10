@@ -6,6 +6,7 @@ import it.lockless.psidemoserver.model.PsiDatasetMapDTO;
 import it.lockless.psidemoserver.service.DatasetService;
 import it.lockless.psidemoserver.service.EncryptionService;
 import it.lockless.psidemoserver.service.PsiSessionService;
+import it.lockless.psidemoserver.util.exception.AlgorithmInvalidKeyException;
 import it.lockless.psidemoserver.util.exception.SessionExpiredException;
 import it.lockless.psidemoserver.util.exception.SessionNotFoundException;
 import org.slf4j.Logger;
@@ -14,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import psi.exception.UnsupportedKeySizeException;
 
 import javax.validation.Valid;
 import java.util.Map;
@@ -64,7 +64,7 @@ public class PsiController {
 		log.debug("Calling initSession with psiAlgorithmParameterDTO = {}", psiAlgorithmParameterDTO);
 		try {
 			return ResponseEntity.ok(psiSessionService.initSession(psiAlgorithmParameterDTO));
-		} catch (UnsupportedKeySizeException e) {
+		} catch (AlgorithmInvalidKeyException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
 		}
 	}

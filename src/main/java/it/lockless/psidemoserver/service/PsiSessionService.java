@@ -8,6 +8,7 @@ import it.lockless.psidemoserver.model.BloomFilterDTO;
 import it.lockless.psidemoserver.model.PsiAlgorithmParameterDTO;
 import it.lockless.psidemoserver.model.PsiClientSessionDTO;
 import it.lockless.psidemoserver.repository.PsiSessionRepository;
+import it.lockless.psidemoserver.util.exception.AlgorithmInvalidKeyException;
 import it.lockless.psidemoserver.util.exception.SessionExpiredException;
 import it.lockless.psidemoserver.util.exception.SessionNotFoundException;
 import org.slf4j.Logger;
@@ -80,9 +81,9 @@ public class PsiSessionService {
      * and build the PsiClientSessionDTO to be returned to the client.
      * @param psiAlgorithmParameterDTO the psiAlgorithmParameter selected by the client
      * @return a PsiClientSessionDTO containing the information required to setup the client side session
-     * @throws UnsupportedKeySizeException if the selected key size is not supported for the selected algorithm
+     * @throws AlgorithmInvalidKeyException if the selected key size is not supported for the selected algorithm
      */
-    public PsiClientSessionDTO initSession(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO) throws UnsupportedKeySizeException {
+    public PsiClientSessionDTO initSession(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO) throws AlgorithmInvalidKeyException {
         log.info("Calling initSession with psiAlgorithmParameterDTO = {}", psiAlgorithmParameterDTO);
 
         PsiAlgorithmParameter psiAlgorithmParameter = psiAlgorithmParameterDTO.getContent();
@@ -93,13 +94,18 @@ public class PsiSessionService {
         PsiServerSession psiServerSession;
         Long psiKeyId = psiKeyOptional.map(PsiKey::getKeyId).orElse(null);
         // If a key is available it is used in the new server session
-        if(psiKeyOptional.isPresent()){
-            // Builds ServerKeyDescription with the stored key
-            PsiServerKeyDescription psiServerKeyDescription = psiKeyService.buildPsiServerKeyDescription(psiKeyOptional.get());
-            psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameter, psiServerKeyDescription, psiCacheProvider);
-        } else {
-            psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameter, psiCacheProvider);
-            psiKeyId = psiKeyService.storePsiServerKeyDescription(psiAlgorithmParameter, psiServerSession.getPsiServerKeyDescription());
+        try {
+            if(psiKeyOptional.isPresent()){
+                // Builds ServerKeyDescription with the stored key
+                PsiServerKeyDescription psiServerKeyDescription = psiKeyService.buildPsiServerKeyDescription(psiKeyOptional.get());
+                psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameter, psiServerKeyDescription, psiCacheProvider);
+
+            } else {
+                psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameter, psiCacheProvider);
+                psiKeyId = psiKeyService.storePsiServerKeyDescription(psiAlgorithmParameter, psiServerSession.getPsiServerKeyDescription());
+            }
+        } catch (UnsupportedKeySizeException e) {
+            throw new AlgorithmInvalidKeyException("The keySize " + psiAlgorithmParameter.getKeySize() + " is not supported for the algorithm " + psiAlgorithmParameter.getAlgorithm());
         }
 
         // Storing the session into the DB
