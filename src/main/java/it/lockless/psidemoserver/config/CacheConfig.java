@@ -12,6 +12,12 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 /**
  * The provided cache is implemented based on redis.
  * If the redis server is not reachable to the specified endpoint, the cache is not used.
+ *
+ * Helpful commands to run redis locally with docker:
+ * - Create redis docker: docker run --name redis -p 6379:6379 -d redis
+ * - After stopped, can run again with: docker start redis
+ * - Connect to cli: docker exec -it redis redis-cli
+ *
  */
 
 @Component

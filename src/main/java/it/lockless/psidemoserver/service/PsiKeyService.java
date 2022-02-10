@@ -30,7 +30,11 @@ public class PsiKeyService {
         this.storedAlgorithmKey = storedAlgorithmKey;
     }
 
-    // Build PsiServerKeyDescription from a PsiKey
+    /**
+     * Builds PsiServerKeyDescription from a PsiKey
+     * @param psiKey the database object containing the key information
+     * @return a PsiServerKeyDescription representing the key
+     * */
     PsiServerKeyDescription buildPsiServerKeyDescription(PsiKey psiKey){
         log.trace("Calling buildPsiServerKeyDescription with psiKey = {}", psiKey);
         switch (psiKey.getAlgorithm()) {
@@ -48,8 +52,11 @@ public class PsiKeyService {
     }
 
     /**
-     * Build and store a PsiKey from a PsiServerKeyDescription
-     */
+     * Builds and stores a PsiKey from a PsiServerKeyDescription
+     * @param psiAlgorithmParameter     the algorithm parameters associated to the key to be stored
+     * @param psiServerKeyDescription   the sdk representation of a server key
+     * @return the keyId associated to the new key
+     * */
     Long storePsiServerKeyDescription(PsiAlgorithmParameter psiAlgorithmParameter, PsiServerKeyDescription psiServerKeyDescription){
         log.debug("Calling storePsiServerKeyDescription with psiAlgorithmParameter = {}, psiServerKeyDescription = {}", psiAlgorithmParameter, psiServerKeyDescription);
         PsiKey psiKey = new PsiKey();
@@ -77,7 +84,9 @@ public class PsiKeyService {
     }
 
     /**
-     * Retrieve the PsiServerKeyDescription corresponding to the keyId
+     * Retrieves the PsiServerKeyDescription corresponding to the keyId.
+     * @param keyId the id of the key to be retrieved.
+     * @return a PsiServerKeyDescription of the key associated to the keyId.
      */
     PsiServerKeyDescription findAndBuildByKeyId(Long keyId){
         log.trace("Calling findByKeyId with keyId = {}", keyId);
@@ -86,7 +95,10 @@ public class PsiKeyService {
     }
 
     /**
-     * If available, retrieve the PsiServerKeyDescription corresponding to the psiAlgorithm and keySize
+     * If available, retrieves the PsiServerKeyDescription corresponding to the psiAlgorithm and keySize.
+     * @param psiAlgorithmParameter the algorithm parameters of the key to be retrieved.
+     * @return if available, an Optional containing the PsiServerKeyDescription of the retrieved key,
+     * an empty Optional otherwise .
      */
     Optional<PsiKey> findByPsiAlgorithmParameter(PsiAlgorithmParameter psiAlgorithmParameter){
         log.trace("Calling findByPsiAlgorithmAndKeySize with psiAlgorithmParameter = {}", psiAlgorithmParameter);

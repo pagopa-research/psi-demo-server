@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.Arrays;
 
 /**
- * DTO encapsulating Bloom Filter byte representation
+ * DTO encapsulating Bloom Filter byte representation.
  */
 
 public class BloomFilterDTO {

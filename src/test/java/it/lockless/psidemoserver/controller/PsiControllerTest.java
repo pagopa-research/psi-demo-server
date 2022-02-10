@@ -120,7 +120,7 @@ class PsiControllerTest {
 		setupServerDataset(serverTotalElements, matchingElements);
 		Set<String> clientDataset = setupClientDataset(clientTotalElements, matchingElements);
 
-		// Retrieve the list of available algorithms and relative keySize
+		// Retrieving the list of available algorithms and relative keySize
 		PsiAlgorithmParameterListDTO psiAlgorithmParameterListDTO = controller.getParameters().getBody();
 		assertNotNull(psiAlgorithmParameterListDTO);
 		List<PsiAlgorithmParameter> sessionParameterList = psiAlgorithmParameterListDTO.getContent();
@@ -131,7 +131,7 @@ class PsiControllerTest {
 		for(PsiAlgorithmParameter psiAlgorithmParameter : sessionParameterList) {
 			PsiClientKeyDescription psiClientKeyDescription = null;
 
-			// Initialize a new Session
+			// Initializing a new Session
 			PsiClientSessionDTO psiClientSessionDTO = (PsiClientSessionDTO) controller.initSession(new PsiAlgorithmParameterDTO(psiAlgorithmParameter)).getBody();
 			assertNotNull(psiClientSessionDTO);
 			assertNotNull(psiClientSessionDTO.getPsiClientSession());
@@ -139,7 +139,7 @@ class PsiControllerTest {
 			assertEquals(psiAlgorithmParameter, psiClientSessionDTO.getPsiClientSession().getPsiAlgorithmParameter());
 			Long sessionId = psiClientSessionDTO.getSessionId();
 
-			// Reset cache content
+			// Resetting cache content
 			cacheMock = new ConcurrentHashMap<>();
 
 			// The whole execution is performed two times to verify that the cache is correctly used
@@ -149,7 +149,7 @@ class PsiControllerTest {
 				cacheMiss = new AtomicInteger(0);
 				cachePut = new AtomicInteger(0);
 
-				// CLIENT SIDE: Setup client
+				// CLIENT SIDE: Setting up client
 				// Note: the client cache is used to enhance the server cache while using random number based algorithms
 				PsiClient psiClient;
 				if (psiClientKeyDescription == null) {
@@ -164,12 +164,12 @@ class PsiControllerTest {
 				Map<Long, String> encryptedClientDataset = psiClient.loadAndEncryptClientDataset(clientDataset);
 				PsiDatasetMapDTO psiDatasetMapDTO = new PsiDatasetMapDTO(encryptedClientDataset);
 
-				// Double encrypt client dataset
+				// Double encrypting client dataset
 				PsiDatasetMapDTO returnedPsiDatasetMapDTO = (PsiDatasetMapDTO) controller.encryptClientDataset(sessionId, psiDatasetMapDTO).getBody();
 				assertNotNull(returnedPsiDatasetMapDTO);
 				assertEquals(clientDataset.size(), returnedPsiDatasetMapDTO.getContent().size());
 
-				// Encrypt server dataset in two different pages
+				// Encrypting server dataset in two different pages
 				PsiServerDatasetPageDTO page = (PsiServerDatasetPageDTO) controller.getEncryptedServerServerDataset(sessionId, 0, 20).getBody();
 				assertNotNull(page);
 				assertEquals(serverTotalElements, page.getTotalEntries());
@@ -197,11 +197,11 @@ class PsiControllerTest {
 					assertEquals(0, cachePut.get());
 				}
 
-				// CLIENT SIDE: load server encrypted datasets
+				// CLIENT SIDE: loading server encrypted datasets
 				psiClient.loadAndProcessServerDataset(encryptedServerDataset);
 				psiClient.loadDoubleEncryptedClientDataset(returnedPsiDatasetMapDTO.getContent());
 
-				// CLIENT SIDE: compute psi
+				// CLIENT SIDE: computing psi
 				Set<String> psiSet = psiClient.computePsi();
 				assertEquals(matchingElements, psiSet.size());
 				psiSet.forEach(elem -> assertTrue(elem.startsWith("MATCHING-")));

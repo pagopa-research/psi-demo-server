@@ -32,7 +32,7 @@ public class StoredAlgorithmKey {
     private ConcurrentHashMap<Long, PsiKey> keyIdMap;
 
     /**
-     * Initialize the keyStore loading key from a file
+     * Initializes the keyStore loading key from a file.
      */
     StoredAlgorithmKey() {
         log.info("Calling StoredAlgorithmKey");
@@ -57,7 +57,7 @@ public class StoredAlgorithmKey {
     }
 
     /**
-     * Store a new key into the keyStore
+     * Stores a new key into the keyStore
      */
     public synchronized void storeKey(PsiKey psiKey){
         keyIdMap.put(psiKey.getKeyId(), psiKey);
@@ -71,7 +71,7 @@ public class StoredAlgorithmKey {
     }
 
     /**
-     * Retrieve a key associated to an algorithm and a key size
+     * Retrieves a key associated to an algorithm and a key size
      */
     public Optional<PsiKey> findByAlgorithmAndKeySize(Algorithm algorithm, int keySize) {
         PsiKey psiKey = keyIdMap.values().stream()
@@ -84,7 +84,7 @@ public class StoredAlgorithmKey {
     }
 
     /**
-     * Retrieve a key associated to a KeyId
+     * Retrieves a key associated to a KeyId
      */
     public Optional<PsiKey> findByKeyId(Long keyId) {
         PsiKey psiKey = keyIdMap.get(keyId);

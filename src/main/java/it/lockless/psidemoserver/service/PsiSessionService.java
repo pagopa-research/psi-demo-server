@@ -8,7 +8,6 @@ import it.lockless.psidemoserver.model.BloomFilterDTO;
 import it.lockless.psidemoserver.model.PsiAlgorithmParameterDTO;
 import it.lockless.psidemoserver.model.PsiClientSessionDTO;
 import it.lockless.psidemoserver.repository.PsiSessionRepository;
-import it.lockless.psidemoserver.util.GlobalVariable;
 import it.lockless.psidemoserver.util.exception.SessionExpiredException;
 import it.lockless.psidemoserver.util.exception.SessionNotFoundException;
 import org.slf4j.Logger;
@@ -45,6 +44,9 @@ public class PsiSessionService {
     @Value("${bloomfilter.enabled}")
     private boolean bloomFilterEnabled;
 
+    @Value("${threads: 8}")
+    private int numThreads;
+
     private final PsiSessionRepository psiSessionRepository;
 
     private final PsiKeyService psiKeyService;
@@ -65,7 +67,8 @@ public class PsiSessionService {
     }
 
     /**
-     * Compute the expiration time starting from the current time
+     * Computes the expiration time starting from the current time.
+     * @return the Instant containing the expiration time
      */
     private Instant getExpirationTime(){
         log.trace("Calling getExpirationTime");
@@ -73,22 +76,25 @@ public class PsiSessionService {
     }
 
     /**
-     * Initialize and store a new session based on the input algorithm parameters
-     * and build the PsiClientSessionDTO to be returned to the client
+     * Initializes and stores a new session based on the input algorithm parameters
+     * and build the PsiClientSessionDTO to be returned to the client.
+     * @param psiAlgorithmParameterDTO the psiAlgorithmParameter selected by the client
+     * @return a PsiClientSessionDTO containing the information required to setup the client side session
+     * @throws UnsupportedKeySizeException if the selected key size is not supported for the selected algorithm
      */
     public PsiClientSessionDTO initSession(PsiAlgorithmParameterDTO psiAlgorithmParameterDTO) throws UnsupportedKeySizeException {
         log.info("Calling initSession with psiAlgorithmParameterDTO = {}", psiAlgorithmParameterDTO);
 
         PsiAlgorithmParameter psiAlgorithmParameter = psiAlgorithmParameterDTO.getContent();
 
-        // Retrieve the key corresponding to the pair <algorithm, keySIze>
+        // Retrieves the key corresponding to the pair <algorithm, keySIze>
         Optional<PsiKey> psiKeyOptional = psiKeyService.findByPsiAlgorithmParameter(psiAlgorithmParameter);
 
         PsiServerSession psiServerSession;
         Long psiKeyId = psiKeyOptional.map(PsiKey::getKeyId).orElse(null);
         // If a key is available it is used in the new server session
         if(psiKeyOptional.isPresent()){
-            // Build ServerKeyDescription with the stored key
+            // Builds ServerKeyDescription with the stored key
             PsiServerKeyDescription psiServerKeyDescription = psiKeyService.buildPsiServerKeyDescription(psiKeyOptional.get());
             psiServerSession = PsiServerFactory.initSession(psiAlgorithmParameter, psiServerKeyDescription, psiCacheProvider);
         } else {
@@ -112,7 +118,7 @@ public class PsiSessionService {
         psiClientSessionDTO.setSessionId(psiSession.getSessionId());
         psiClientSessionDTO.setPsiClientSession(PsiClientSession.getFromServerSession(psiServerSession));
 
-        // If bloom filter is enabled, get the last generated bloom filter (if available) and set it
+        // If bloom filter is enabled, gets the last generated bloom filter (if available) and sets it
         if(bloomFilterEnabled){
             Optional<SerializedBloomFilter> serializedBloomFilterOptional = bloomFilterService.getLastSerializedBloomFilter();
             serializedBloomFilterOptional.ifPresent(serializedBloomFilter -> psiClientSessionDTO.setBloomFilterDTO(new BloomFilterDTO(serializedBloomFilter)));
@@ -122,55 +128,59 @@ public class PsiSessionService {
     }
 
     /**
-     * Build a PsiServer based on the input sessionId
-     * */
+     * Builds a PsiServer instance based on the input sessionId.
+     * The information about the session are retrieved from the database.
+     * @param sessionId the id identifying the session associated to the client
+     * @return a PsiServer initialized with the requested session
+     * @throws SessionNotFoundException if the sessionId does not correspond to any session in the database
+     * @throws SessionExpiredException  if the session is expired
+     */
     PsiServer loadPsiServerBySessionId(long sessionId) throws SessionNotFoundException, SessionExpiredException {
         log.debug("Calling loadPsiServerBySessionId with sessionId = {}", sessionId);
-        PsiServer psiServer = PsiServerFactory.loadSession(getPsiServerSession(sessionId), psiCacheProvider);
-        psiServer.setConfiguration(new PsiRuntimeConfiguration(GlobalVariable.DEFAULT_THREADS));
-        return psiServer;
-    }
 
-    /**
-     * Retrieve the information about the sessionId and build the PsiServerSession
-     * */
-    private PsiServerSession getPsiServerSession(long sessionId) throws SessionNotFoundException, SessionExpiredException {
-        log.trace("Calling getPsiServerSession with sessionId = {}", sessionId);
-
-        // Retrieve the session information from the database.
+        // Retrieves the session information from the database.
         // These information will be used to build the PsiServerSession object required to create the PsiServe object
         PsiSession psiSession = psiSessionRepository.findBySessionId(sessionId)
                 .orElseThrow(SessionNotFoundException::new);
 
-        // Check if the session is expired
+        // Checks if the session is expired
         if(psiSession.getExpiration().isBefore(Instant.now()))
             throw new SessionExpiredException();
 
-        // Retrieve the key used by the current session
+        // Retrieves the key used by the current session
         PsiServerKeyDescription psiServerKeyDescription = psiKeyService.findAndBuildByKeyId(psiSession.getKeyId());
 
         // Build the ServerSession used to load the PsiServer
-        return new PsiServerSession(
+        PsiServerSession psiServerSession = new PsiServerSession(
                 AlgorithmMapper.toPsiAlgorithm(psiSession.getAlgorithm()),
                 psiSession.getKeySize(),
                 psiSession.getCacheEnabled(),
                 psiServerKeyDescription);
+
+        // Initialize the PsiServer with the PsiServerSession
+        PsiServer psiServer = PsiServerFactory.loadSession(psiServerSession, psiCacheProvider);
+        psiServer.setConfiguration(new PsiRuntimeConfiguration(numThreads));
+        return psiServer;
     }
 
     /**
-     * Retrieve the information about the sessionId and build the PsiClientSessionDTO
-     * */
+     * Retrieve the information about the sessionId and build the PsiClientSessionDTO.
+     * The information about the session are retrieved from the database.
+     * @param sessionId the id identifying the session associated to the client
+     * @return a PsiServer initialized with the requested session
+     * @throws SessionNotFoundException if the sessionId does not correspond to any session in the database
+     */
     public PsiClientSessionDTO getPsiClientSessionDTO(long sessionId) throws SessionNotFoundException {
         log.trace("Calling getPsiClientSessionDTO with sessionId = {}", sessionId);
 
-        // Retrieve the session information from the database
+        // Retrieves the session information from the database
         PsiSession psiSession = psiSessionRepository.findBySessionId(sessionId)
                 .orElseThrow(SessionNotFoundException::new);
 
-        // Retrieve the key used by the current session
+        // Retrieves the key used by the current session
         PsiServerKeyDescription psiServerKeyDescription = psiKeyService.findAndBuildByKeyId(psiSession.getKeyId());
 
-        // Build the PsiServerSession object
+        // Builds the PsiServerSession object
         PsiServerSession psiServerSession =new PsiServerSession(
                 AlgorithmMapper.toPsiAlgorithm(psiSession.getAlgorithm()),
                 psiSession.getKeySize(),
@@ -182,7 +192,7 @@ public class PsiSessionService {
         psiClientSessionDTO.setSessionId(psiSession.getId());
         psiClientSessionDTO.setPsiClientSession(PsiClientSession.getFromServerSession(psiServerSession));
 
-        // If bloom filter is enabled, get the last generated bloom filter (if available) and set it
+        // If bloom filter is enabled, gets the last generated bloom filter (if available) and set it
         if(bloomFilterEnabled){
             Optional<SerializedBloomFilter> serializedBloomFilterOptional = bloomFilterService.getLastSerializedBloomFilter();
             serializedBloomFilterOptional.ifPresent(serializedBloomFilter -> psiClientSessionDTO.setBloomFilterDTO(new BloomFilterDTO(serializedBloomFilter)));

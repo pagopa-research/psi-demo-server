@@ -7,7 +7,7 @@ import java.time.Instant;
 import java.util.Objects;
 
 /**
- * DTO containing information required by the client to setup and carry on the psi computation
+ * DTO containing information required by the client to setup and carry on the psi computation.
  */
 
 public class PsiClientSessionDTO {

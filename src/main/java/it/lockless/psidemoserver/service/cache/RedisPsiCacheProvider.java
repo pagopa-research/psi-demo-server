@@ -19,6 +19,13 @@ public class RedisPsiCacheProvider implements PsiCacheProvider {
 
     private final JedisPool jedisPool;
 
+    /**
+     * Initializes the connection with redis the value linked to a given key.
+     * Yf redis is not reachable, throws the runtime exception JedisConnectionException
+     * @param host   host of the redis service
+     * @param port   port of the redis service
+     * @return the initialized RedisPsiCacheProvider
+     */
     public RedisPsiCacheProvider(String host, int port) {
         this.jedisPool = new JedisPool(host, port);
         Jedis jedis = jedisPool.getResource();
@@ -27,10 +34,8 @@ public class RedisPsiCacheProvider implements PsiCacheProvider {
     }
 
     /**
-     * Retrieve the value linked to a given key.
-     *
+     * Retrieves the value linked to a given key.
      * @param key   key corresponding to the value to be retrieved
-     *
      * @return an Optional containing the the cached value if present, Optional.empty() otherwise
      */
     @Override
@@ -45,10 +50,9 @@ public class RedisPsiCacheProvider implements PsiCacheProvider {
     }
 
     /**
-     * Stores the pair <key, value> into the cache. If the key exists, it is not replaced
-     *
-     * @param key       key corresponding to the value to be stored.
-     * @param value     value to be stored.
+     * Stores the pair <key, value> into the cache. If the key exists, it is not replaced.
+     * @param key       key corresponding to the value to be stored
+     * @param value     value to be stored
      */
 
     @Override

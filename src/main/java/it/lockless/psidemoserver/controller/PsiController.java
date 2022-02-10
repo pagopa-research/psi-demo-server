@@ -42,8 +42,7 @@ public class PsiController {
 	}
 
 	/**
-	 * Retrieve a description of the PSI algorithm parameters supported by the server.
-	 *
+	 * Retrieves a description of the PSI algorithm parameters supported by the server.
 	 * @return 	200, a PsiAlgorithmParameterListDTO containing list of PSI algorithms and keys supported by the server
 	 * 			500, internal server error
 	 */
@@ -54,8 +53,7 @@ public class PsiController {
 	}
 
 	/**
-	 * Create a new PSI session for the requesting client.
-	 *
+	 * Creates a new PSI session for the requesting client.
 	 * @param 	psiAlgorithmParameterDTO the psiAlgorithmParameter selected by the client
 	 * @return 	200, a PsiClientSessionDTO containing the information required to setup the client side session
 	 * 			400, wrong or missing input
@@ -72,10 +70,9 @@ public class PsiController {
 	}
 
 	/**
-	 * Retrieve the server encryption of the client dataset passed in input.
-	 *
-	 * @param sessionId the id identifying the session associated to the client
-	 * @param psiDatasetMapDTO the client set to be encrypted by the server
+	 * Retrieves the server encryption of the client dataset passed in input.
+	 * @param sessionId 		the id identifying the session associated to the client
+	 * @param psiDatasetMapDTO 	the client set to be encrypted by the server
 	 * @return	200, a PsiDatasetMapDTO containing the client encrypted dataset
 	 * 			400, wrong or missing input
 	 * 			404, session not found
@@ -95,12 +92,11 @@ public class PsiController {
 	}
 
 	/**
-	 * Retrieve the encrypted dataset of the server.
-	 *
+	 * Retrieves the encrypted dataset of the server.
 	 * @param sessionId the id identifying the session associated to the client
-	 * @param page	the page to be retrieved by the server set
-	 * @param size	the size of the page to be retrieved
-	 * @return 	200, a PsiServerDatasetPageDTO containing the server encrypted dataset
+	 * @param page		the page to be retrieved by the server set
+	 * @param size		the size of the page to be retrieved
+	 * @return 	200, a PsiServerDatasetPageDTO containing the server encrypted dataset page
 	 * 			400, wrong or missing input
 	 * 			404, session not found
 	 * 			408, session expired
@@ -122,16 +118,14 @@ public class PsiController {
 	}
 
 	/**
-	 * Retrieve the description of the session identified by the sessionId
-	 *
+	 * Retrieves the description of the session identified by the sessionId
 	 * @param sessionId the id identifying the session associated to the client
 	 * @return 	200, a PsiClientSessionDTO containing the information about the session
 	 * 			404, session not found
 	 * 			500, internal server error
 	 */
 	@GetMapping(value = "/{sessionId}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity getSession(
-			@PathVariable("sessionId") Long sessionId) {
+	public ResponseEntity getSession(@PathVariable("sessionId") Long sessionId) {
 		log.debug("Called getSession with sessionId = {}", sessionId);
         try {
             return ResponseEntity.ok(psiSessionService.getPsiClientSessionDTO(sessionId));
@@ -141,8 +135,7 @@ public class PsiController {
 	}
 
 	/**
-	 * Populate the server dataset depending on the input content, in the shape 'KEY-VALUE'
-	 *
+	 * Populates the server dataset depending on the input content, in the shape 'KEY-VALUE'
 	 * @param datasetStructure map describing the name and number of element to be created
 	 * @return	200, in case the server dataset has been populated correctly
 	 * 			404, session not found

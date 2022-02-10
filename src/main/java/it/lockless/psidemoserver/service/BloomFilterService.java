@@ -36,7 +36,8 @@ public class BloomFilterService {
     }
 
     /**
-     * Compute the Bloom Filter based on the actual element set
+     * Computes the Bloom Filter based on the actual element set.
+     * @return an object containing a byte array representation of the Bloom Filter
      */
     private SerializedBloomFilter computeSerializedBloomFilter(){
         List<PsiElement> psiElementList = psiElementRepository.findAll();
@@ -51,7 +52,7 @@ public class BloomFilterService {
     }
 
     /**
-     * Compute and store the Bloom Filter
+     * Computes and stores the Bloom Filter based on the actual element set.
      */
     public void computeAndSaveSerializedBloomFilter(){
         SerializedBloomFilter serializedBloomFilter = computeSerializedBloomFilter();
@@ -59,7 +60,7 @@ public class BloomFilterService {
     }
 
     /**
-     * Retrieve the last computed Bloom Filter
+     * Retrieves the last computed Bloom Filter.
      */
     Optional<SerializedBloomFilter> getLastSerializedBloomFilter(){
         return serializedBloomFilterRepository.findFirstByOrderByBloomFilterCreationDateDesc();

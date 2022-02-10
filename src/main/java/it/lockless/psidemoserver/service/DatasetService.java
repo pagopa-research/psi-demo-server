@@ -11,7 +11,7 @@ import java.util.Map;
 
 /**
  * It offers functionalities used to initialize the database content.
- * Note: this calss is intended to be used only for testing purpose. Remove it in a business environment.
+ * Note: this class is intended to be used only for testing purpose. Remove it in a business environment.
  */
 
 @Service
@@ -32,8 +32,9 @@ public class DatasetService {
     }
 
     /**
-     * Fill the database with a dummy set described by the input map.
-     * Note: This function is provided only for testing purposes
+     * Fills the database with a dummy set described by the input map.
+     * Note: This function is provided only for testing purposes.
+     * @param datasetStructure a map representing the name and the amount of elements to be generated
      */
     public void initServerDataset(Map<String, Integer> datasetStructure){
         log.debug("Calling initServerDataset with datasetStructure = {}", datasetStructure);
