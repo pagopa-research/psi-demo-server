@@ -1,10 +1,10 @@
 package it.lockless.psidemoserver.config;
 
 import it.lockless.psidemoserver.entity.enumeration.Algorithm;
+import it.lockless.psidemoserver.util.ObjectSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import psi.CustomTypeConverter;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -43,7 +43,7 @@ public class StoredAlgorithmKey {
         if(keyStoreFile.exists()) {
             try {
                 try (Stream<String> stream = Files.lines(keyStoreFile.toPath())) {
-                    stream.forEach(x -> psiKeySet.add(CustomTypeConverter.convertStringToObject(x, PsiKey.class)));
+                    stream.forEach(x -> psiKeySet.add(ObjectSerializer.convertStringToObject(x, PsiKey.class)));
                 }
             } catch (IOException e) {
                 log.error("Unable to open file {}", KEY_STORE_FILENAME);
@@ -64,7 +64,7 @@ public class StoredAlgorithmKey {
 
         File keyStoreFile = new File(KEY_STORE_FILENAME);
         try (FileWriter fileWriter = new FileWriter(keyStoreFile, true)){
-            fileWriter.write(CustomTypeConverter.convertObjectToString(psiKey) + "\n");
+            fileWriter.write(ObjectSerializer.convertObjectToString(psiKey) + "\n");
         } catch (IOException e) {
             log.error("Unable to open file {}", KEY_STORE_FILENAME);
         }

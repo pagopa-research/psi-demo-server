@@ -8,9 +8,9 @@ import it.lockless.psidemoserver.util.exception.KeyNotAvailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import psi.PsiServerKeyDescription;
+import psi.PsiServerKeyDescriptionFactory;
 import psi.model.PsiAlgorithmParameter;
-import psi.server.PsiServerKeyDescription;
-import psi.server.PsiServerKeyDescriptionFactory;
 
 import java.security.SecureRandom;
 import java.util.Optional;
