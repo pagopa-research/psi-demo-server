@@ -11,8 +11,8 @@ import javax.sql.DataSource;
 
 /**
  * Database configuration.
- * Note: this configuration is intended to be used only for testing purpose.
- * Replace with a proper stable DB to use it in a business environment.
+ * Note: this configuration runs the DB in-memory and it is intended to be used only for testing purpose.
+ * Replace with a proper stable-storage DB to use it in a business environment.
  */
 
 @Configuration

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 /**
- * It contains the algorithms supported by the server, including the relative key sizes.
+ * Contains the algorithms supported by the server wit the respective supported key sizes.
  */
 
 public enum Algorithm {

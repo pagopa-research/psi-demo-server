@@ -21,7 +21,7 @@ import psi.server.PsiServer;
 import java.util.*;
 
 /**
- * It offers functionalities related to dataset encryptions.
+ * Offers the functionalities for PSI calculation by calling the PSI-SDK.
  */
 
 @Service

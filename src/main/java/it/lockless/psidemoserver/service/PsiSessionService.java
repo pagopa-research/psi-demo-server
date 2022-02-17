@@ -31,7 +31,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 /**
- * It offers functionalities used to manage the sessions (creation and retrieving).
+ * Offers functionalities used to manage the sessions (both creation and retrieval).
  */
 
 @Service

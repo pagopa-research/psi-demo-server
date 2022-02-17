@@ -9,6 +9,9 @@ import psi.exception.CustomRuntimeException;
 
 import java.util.Base64;
 
+/**
+ * Helper class that serializes/deserializes objects to/from JSON strings
+ */
 public class ObjectSerializer {
 
     public static <T> String convertObjectToString(T object){

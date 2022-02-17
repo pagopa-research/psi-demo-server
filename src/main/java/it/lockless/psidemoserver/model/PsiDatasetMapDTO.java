@@ -4,7 +4,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * DTO used to transfer client dataset, characterized by the presence of a key for each value.
+ * DTO used to transfer client dataset, which are maps that contain as key a client-generated identifier of the item,
+ * and as value the encryption of the item.
  */
 
 public class PsiDatasetMapDTO {

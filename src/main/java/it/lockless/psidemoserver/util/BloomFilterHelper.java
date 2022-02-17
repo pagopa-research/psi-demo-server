@@ -15,7 +15,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * This class offers utility to generate and serialize/deserialize the Bloom Filter.
+ * Utility class that allows to generate and serialize/deserialize Bloom Filters.
  */
 
 @SuppressWarnings("UnstableApiUsage")

@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * It contains functionalities to compute the Bloom Filter.
+ * Offers the functionalities to compute the Bloom Filter.
  */
 
 @SuppressWarnings("UnstableApiUsage")

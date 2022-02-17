@@ -20,7 +20,7 @@ import javax.validation.Valid;
 import java.util.Map;
 
 /**
- * This class contains the exposed endpoints used to start a new session and carry on a psi computation.
+ * Exposes to clients the endpoints used to start a new session and carry on a PSI computation.
  */
 
 @RestController

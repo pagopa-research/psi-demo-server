@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 /**
- * It offers functionalities used to initialize the database content.
- * Note: this class is intended to be used only for testing purpose. Remove it in a business environment.
+ * Offers functionalities used to initialize the database content.
+ * Note: this class is intended to be used only for testing purpose. Remove it in a production environment.
  */
 
 @Service

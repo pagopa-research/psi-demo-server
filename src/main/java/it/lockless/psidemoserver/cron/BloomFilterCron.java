@@ -22,7 +22,7 @@ public class BloomFilterCron {
     }
 
     /**
-     * Scheduled job used to periodically compute the Bloom Filter
+     * Scheduled job that periodically computes a Bloom Filter of the server dataset
      */
     @Scheduled(fixedRateString = "${bloomfilter.interval.mseconds:300000}", initialDelayString = "${bloomfilter.interval.mseconds:300000}")
     public void updateBloomFilter(){

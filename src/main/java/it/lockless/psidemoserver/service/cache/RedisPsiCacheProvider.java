@@ -6,11 +6,12 @@ import org.slf4j.LoggerFactory;
 import psi.cache.PsiCacheProvider;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import java.util.Optional;
 
 /**
- * Implementation of a PsiCacheProvided based on redis.
+ * Implementation of a PsiCacheProvided based on Redis.
  */
 
 public class RedisPsiCacheProvider implements PsiCacheProvider {
@@ -21,10 +22,11 @@ public class RedisPsiCacheProvider implements PsiCacheProvider {
 
     /**
      * Initializes the connection with redis the value linked to a given key.
-     * Yf redis is not reachable, throws the runtime exception JedisConnectionException
+     * If redis is not reachable, throws the runtime exception JedisConnectionException
+     *
      * @param host   host of the redis service
      * @param port   port of the redis service
-     * @return the initialized RedisPsiCacheProvider
+     * @throws JedisConnectionException if jedis is not reachable
      */
     public RedisPsiCacheProvider(String host, int port) {
         this.jedisPool = new JedisPool(host, port);
@@ -35,8 +37,9 @@ public class RedisPsiCacheProvider implements PsiCacheProvider {
 
     /**
      * Retrieves the value linked to a given key.
+     *
      * @param key   key corresponding to the value to be retrieved
-     * @return an Optional containing the the cached value if present, Optional.empty() otherwise
+     * @return an Optional containing the cached value if present, Optional.empty() otherwise
      */
     @Override
     public Optional<String> get(String key) {

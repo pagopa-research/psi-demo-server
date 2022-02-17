@@ -16,7 +16,7 @@ import java.security.SecureRandom;
 import java.util.Optional;
 
 /**
- * Functionalities related to dataset encryptions.
+ * Provides functionalities to manage the key descriptions
  */
 
 @Service

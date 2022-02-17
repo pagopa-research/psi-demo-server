@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * It stores the information about a single key as part of the keyStore service.
+ * Contains the fields of a key description stored in the keyStore.
  */
 
 public class PsiKey implements Serializable {
