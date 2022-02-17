@@ -84,7 +84,7 @@ public class EncryptionService {
      */
     public PsiServerDatasetPageDTO getEncryptedServerDataset(long sessionId, int page, int size) throws SessionNotFoundException, SessionExpiredException {
         log.debug("Calling getEncryptedServerDataset with sessionId = {}, page = {}, size = {}", sessionId, page, size);
-        // Retrieves the psiServe instance
+        // Retrieves the psiServer instance
         PsiServer psiServer = psiSessionService.loadPsiServerBySessionId(sessionId);
 
         // Retrieves a clear page depending on the specified page and size
