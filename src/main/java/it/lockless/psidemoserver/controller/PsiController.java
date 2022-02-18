@@ -135,7 +135,12 @@ public class PsiController {
 	}
 
 	/**
-	 * Populates the server dataset depending on the input content, in the shape 'KEY-VALUE'
+	 * Populates the server dataset by adding new entries based on the entries of the map passed in the body.
+	 * For each entry of the map, a number of entries equal to the number expressed by the value is created,
+	 * with the radix of the entry being the key and the last portion of the string being an increasing counter in
+	 * the format KEY-COUNTER. This endpoint is only offered for testing purposes and should be excluded by
+	 * any production environment.
+	 *
 	 * @param datasetStructure map describing the name and number of element to be created
 	 * @return	200, in case the server dataset has been populated correctly
 	 * 			404, session not found
