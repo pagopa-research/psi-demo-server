@@ -14,6 +14,8 @@ import java.util.Base64;
  */
 public class ObjectSerializer {
 
+    private ObjectSerializer(){}
+
     public static <T> String convertObjectToString(T object){
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);

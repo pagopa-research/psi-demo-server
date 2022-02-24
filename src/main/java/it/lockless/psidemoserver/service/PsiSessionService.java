@@ -18,12 +18,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import psi.PsiServerFactory;
 import psi.PsiServerKeyDescription;
-import psi.PsiServerSession;
 import psi.cache.PsiCacheProvider;
 import psi.exception.UnsupportedKeySizeException;
 import psi.model.PsiAlgorithmParameter;
 import psi.model.PsiClientSession;
 import psi.model.PsiRuntimeConfiguration;
+import psi.model.PsiServerSession;
 import psi.server.PsiServer;
 
 import java.time.Instant;

@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Contains the representation of a Bloom Filter with its metadata.
  * Since only the last Bloom Filter is used, this table should be periodically cleaned up by removing old ones.
- * In case psi elements are further characterized, this table must be augmented in order to keep different objects
+ * In case PSI elements are further characterized, this table must be augmented in order to keep different objects
  * for different element sets.
  */
 
