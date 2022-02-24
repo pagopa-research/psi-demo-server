@@ -120,7 +120,8 @@ the session identifier and the session expiration time.
 2. A <code>PsiServer</code> object is created by calling the <code>loadSession</code> method
 of the <code>PsiServerFactory</code> class, passing as input the <code>PsiServerSession</code> retrieved from the database.
 3. The server calls the method <code>encryptDatasetMap</code> on the <code>PsiServer</code> object, passing in input
-the <code>PsiDatasetMapDTO</code> object sent by the client. The returned <code>PsiDatasetMapDTO</code> is returned to the client.
+the <code>PsiDatasetMapDTO</code> object sent by the client. 
+4. The server returns to the client a <code>PsiDatasetMapDTO</code> object containing the map resulting by the previous step.
 
 ### GET /psi/{sessionId}/serverSet
 1. The server queries the database to retrieve the PsiServerSession object identified by <code>sessionId</code>.
