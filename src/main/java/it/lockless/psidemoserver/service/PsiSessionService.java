@@ -22,7 +22,7 @@ import psi.cache.PsiCacheProvider;
 import psi.exception.UnsupportedKeySizeException;
 import psi.model.PsiAlgorithmParameter;
 import psi.model.PsiClientSession;
-import psi.model.PsiRuntimeConfiguration;
+import psi.model.PsiThreadConfiguration;
 import psi.model.PsiServerSession;
 import psi.server.PsiServer;
 
@@ -165,7 +165,7 @@ public class PsiSessionService {
 
         // Initialize the PsiServer with the PsiServerSession
         PsiServer psiServer = PsiServerFactory.loadSession(psiServerSession, psiCacheProvider);
-        psiServer.setConfiguration(new PsiRuntimeConfiguration(numThreads));
+        psiServer.setConfiguration(new PsiThreadConfiguration(numThreads));
         return psiServer;
     }
 
