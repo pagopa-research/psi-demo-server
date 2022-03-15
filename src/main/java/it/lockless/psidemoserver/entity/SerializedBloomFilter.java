@@ -22,7 +22,8 @@ public class SerializedBloomFilter {
     @Column(name = "id")
     private long id;
 
-    @Column(name = "serialized_value")
+    @Lob
+    @Column(name = "serialized_value", columnDefinition="TEXT")
     private byte[] serializedValue;
 
     @Column(name = "bloom_filter_creation_date")
