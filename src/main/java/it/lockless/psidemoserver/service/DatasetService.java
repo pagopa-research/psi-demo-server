@@ -53,6 +53,6 @@ public class DatasetService {
 
         // If enabled, we also update the Bloom Filter after setting the server dataset
         if(bloomFilterEnabled)
-            bloomFilterService.computeAndSaveSerializedBloomFilter();
+            bloomFilterService.computeAndSaveSerializedBloomFilterAsync();
     }
 }

@@ -7,6 +7,7 @@ import it.lockless.psidemoserver.repository.PsiElementRepository;
 import it.lockless.psidemoserver.repository.SerializedBloomFilterRepository;
 import it.lockless.psidemoserver.util.BloomFilterHelper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -57,6 +58,14 @@ public class BloomFilterService {
     public void computeAndSaveSerializedBloomFilter(){
         SerializedBloomFilter serializedBloomFilter = computeSerializedBloomFilter();
         this.serializedBloomFilterRepository.save(serializedBloomFilter);
+    }
+
+    /**
+     * Asynchronously computes and stores the Bloom Filter based on the actual element set.
+     */
+    @Async
+    public void computeAndSaveSerializedBloomFilterAsync(){
+        computeAndSaveSerializedBloomFilter();
     }
 
     /**
