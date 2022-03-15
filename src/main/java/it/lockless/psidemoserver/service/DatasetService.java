@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,13 +41,15 @@ public class DatasetService {
     public void initServerDataset(Map<String, Integer> datasetStructure){
         log.debug("Calling initServerDataset with datasetStructure = {}", datasetStructure);
         psiElementRepository.deleteAll();
+        List<PsiElement> psiElementList = new LinkedList<>();
         for(Map.Entry<String, Integer> entry : datasetStructure.entrySet()){
             for (int i = 0; i < entry.getValue(); i++) {
                 PsiElement psiElement = new PsiElement();
                 psiElement.setValue(entry.getKey()+"-"+i);
-                psiElementRepository.save(psiElement);
+                psiElementList.add(psiElement);
             }
         }
+        psiElementRepository.saveAll(psiElementList);
 
         // If enabled, we also update the Bloom Filter after setting the server dataset
         if(bloomFilterEnabled)
